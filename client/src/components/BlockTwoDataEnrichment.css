@@ -1,0 +1,118 @@
+/* BlockTwoDataEnrichment.css */
+
+.blockTwoContainer {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.seriesListContainer { /* Контейнер для списка с ограничением высоты */
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 5px; /* Место для скроллбара */
+    margin-top: 10px;
+}
+
+.seriesPlaqueTwo { /* Используем другое имя класса, чтобы не конфликтовать с Блоком 1 */
+    display: flex;
+    align-items: center;
+    border: 1px solid #eee;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    font-size: 0.9em;
+    cursor: pointer; /* Для клика и визуализации */
+    transition: background-color 0.2s ease;
+}
+.seriesPlaqueTwo:hover {
+    background-color: #e9ecef;
+}
+
+/* Кнопка-иконка Rename */
+.renameIconButton {
+    background: none;
+    border: none;
+    padding: 0 4px 0 0; /* Убрали левый padding */
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-right: 8px; /* Отступ справа от иконки */
+}
+.renameIconButton:hover {
+    color: #000; /* Темнее при наведении */
+}
+
+/* Контейнер для имени/поля ввода */
+.seriesNameContainer {
+    font-weight: 500;
+    flex-grow: 1; /* Занимает доступное место */
+    overflow: hidden;
+    margin-right: 10px; /* Отступ до кнопок справа */
+}
+.seriesNameSpan { /* Отображение имени */
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.editingInput { /* Поле ввода */
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid #007bff;
+    outline: none;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+/* Тег "S" для синтетических рядов */
+.syntheticTag {
+    font-size: 0.8em;
+    color: #6f42c1;
+    background-color: #e9d8fd;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: bold;
+    cursor: default;
+    display: inline-block; /* Чтобы был на той же строке */
+    vertical-align: middle; /* Выравнивание по вертикали */
+}
+
+/* Контейнер для кнопок действий справа */
+.actionButtonsContainer {
+    flex-shrink: 0; /* Не сжиматься */
+}
+.actionButton {
+    margin-left: 5px;
+    padding: 3px 6px;
+    font-size: 0.8em;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: white;
+    transition: background-color 0.2s ease;
+}
+.actionButton:hover {
+    background-color: #e9ecef;
+}
+.actionButtonDelete { /* Отдельный стиль для кнопки Delete */
+    color: #dc3545;
+    border-color: #dc3545;
+}
+.actionButtonDelete:hover {
+    background-color: #f8d7da;
+}
+
+/* Сообщение об отсутствии данных */
+.noDataMessage {
+    color: #888;
+    font-style: italic;
+}
