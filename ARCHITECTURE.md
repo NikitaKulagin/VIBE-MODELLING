@@ -5,7 +5,9 @@
 
 ```
 VIBE_MODELING/
+├── ARCHITECTURE.md
 ├── VIBE_MODELLING.docx
+├── VIBE_MODELLING.pdf
 ├── Z1 Div and Corp Loans+levels.xlsx
 ├── client/
 │   ├── README.md
@@ -26,8 +28,12 @@ VIBE_MODELING/
 │       ├── components/
 │       │   ├── BlockOneDataImport.css
 │       │   ├── BlockOneDataImport.js
+│       │   ├── BlockThreeModeling.css
+│       │   ├── BlockThreeModeling.js
 │       │   ├── BlockTwoDataEnrichment.css
 │       │   ├── BlockTwoDataEnrichment.js
+│       │   ├── ModelProgressVisualizer.css
+│       │   ├── ModelProgressVisualizer.js
 │       │   └── TimeSeriesChart.js
 │       ├── index.css
 │       └── index.js
@@ -41,20 +47,25 @@ VIBE_MODELING/
 │   ├── step1b_aggregate_data.py
 │   ├── step2_diff_abs.py
 │   ├── step2_diff_pct.py
-│   └── step2_normalize.py
+│   ├── step2_normalize.py
+│   └── step3_run_regression.py
 ├── server.js
 ├── updateArchitecture.py
-└── uploads/
+├── uploads/
+└── ~$BE_MODELLING.docx
 ```
 
 ### Папка: .
 Содержимые файлы:
+- ARCHITECTURE.md
 - VIBE_MODELLING.docx
+- VIBE_MODELLING.pdf
 - Z1 Div and Corp Loans+levels.xlsx
 - package-lock.json
 - package.json
 - server.js
 - updateArchitecture.py
+- ~$BE_MODELLING.docx
 
 **Детали по файлам:**
 - **Файл**: updateArchitecture.py (язык: python)
@@ -79,7 +90,9 @@ VIBE_MODELING/
     - *Импорты:* re
 - **Файл**: server.js (язык: js)
   - Function: **runPythonScript**
-    - *Описание:* ----------------------------------------------------------------------------- REQUIRED MODULES ----------------------------------------------------------------------------- ----------------------------------------------------------------------------- EXPRESS APP INITIALIZATION & CONFIGURATION ----------------------------------------------------------------------------- Увеличиваем лимиты для обработки потенциально больших данных в JSON и URL-encoded формах ----------------------------------------------------------------------------- MULTER CONFIGURATION (for File Uploads) ----------------------------------------------------------------------------- ----------------------------------------------------------------------------- HELPER FUNCTION FOR RUNNING PYTHON SCRIPTS -----------------------------------------------------------------------------
+    - *Описание:* ----------------------------------------------------------------------------- REQUIRED MODULES ----------------------------------------------------------------------------- --- ИСПРАВЛЕННЫЙ ИМПОРТ itertools --- ----------------------------------------------------------------------------- EXPRESS APP INITIALIZATION & CONFIGURATION ----------------------------------------------------------------------------- Увеличиваем лимиты для обработки потенциально больших данных в JSON и URL-encoded формах ----------------------------------------------------------------------------- MULTER CONFIGURATION (for File Uploads) ----------------------------------------------------------------------------- ----------------------------------------------------------------------------- HELPER FUNCTION FOR RUNNING PYTHON SCRIPTS -----------------------------------------------------------------------------
+  - Function: **sleep**
+    - *Описание:* --- Хранилище активных задач (в памяти) --- --- --- Вспомогательная функция для сна ---
 
 ### Папка: client
 Содержимые файлы:
@@ -115,22 +128,35 @@ VIBE_MODELING/
     - *Импорты:* ./App
 - **Файл**: App.js (язык: js)
   - Function: **App**
-    - *Описание:* Импортируем все компоненты блоков import BlockThreeModeling from './components/BlockThreeModeling'; // Задел на будущее import BlockFourResults from './components/BlockFourResults'; // Задел на будущее --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
+    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/TimeSeriesChart, ./components/BlockOneDataImport, ./components/BlockTwoDataEnrichment
+    - *Импорты:* ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport, ./components/BlockThreeModeling, ./components/TimeSeriesChart
 
 ### Папка: client/src/components
 Содержимые файлы:
 - BlockOneDataImport.css
 - BlockOneDataImport.js
+- BlockThreeModeling.css
+- BlockThreeModeling.js
 - BlockTwoDataEnrichment.css
 - BlockTwoDataEnrichment.js
+- ModelProgressVisualizer.css
+- ModelProgressVisualizer.js
 - TimeSeriesChart.js
 
 **Детали по файлам:**
 - **Файл**: BlockTwoDataEnrichment.js (язык: js)
   - Function: **BlockTwoDataEnrichment**
-    - *Описание:* --- Иконка Карандаш --- --- Иконка Закрытия (для модального окна) --- --- Конец иконок --- --- Стили для модального окна (добавляем к существующим стилям) --- (Предполагается, что стили из BlockTwoDataEnrichment.css загружены) --- Конец стилей модального окна ---
+    - *Описание:* --- Иконки --- --- Конец иконок --- Стили модального окна --- Принимаем новый пропс onSendDataToModeling ---
+- **Файл**: BlockThreeModeling.js (язык: js)
+  - Function: **combinations**
+    - *Описание:* Иконки для статуса регрессоров --- Вспомогательная функция для расчета комбинаций C(n, k) --- Помещаем её *вне* компонента
+  - Function: **BlockThreeModeling**
+    - *Описание:* Оптимизация: C(n, k) == C(n, n-k) Деление делаем последним, чтобы уменьшить ошибки округления Округляем, т.к. результат всегда должен быть целым --- Конец вспомогательной функции ---
+  - File_imports: **BlockThreeModeling.js**
+    - *Импорты:* ./ModelProgressVisualizer
+- **Файл**: ModelProgressVisualizer.js (язык: js)
+  - Function: **ModelProgressVisualizer**
 - **Файл**: BlockOneDataImport.js (язык: js)
   - Function: **BlockOneDataImport**
     - *Описание:* --- Иконки --- --- Конец иконок ---
@@ -143,6 +169,7 @@ VIBE_MODELING/
 - step2_diff_abs.py
 - step2_diff_pct.py
 - step2_normalize.py
+- step3_run_regression.py
 
 **Детали по файлам:**
 - **Файл**: step2_normalize.py (язык: python)
@@ -169,6 +196,12 @@ VIBE_MODELING/
   - Def: **log_error**
   - Def: **log_info**
   - Def: **calculate_diff_pct**
+- **Файл**: step3_run_regression.py (язык: python)
+  - Def: **log_error**
+  - Def: **log_info**
+  - Def: **create_lagged_features**
+    - *Описание:* Создает DataFrame с лагированными признаками.
+  - Def: **run_single_regression**
 - **Файл**: get_sheets.py (язык: python)
   - Def: **log_debug**
 - **Файл**: step2_diff_abs.py (язык: python)

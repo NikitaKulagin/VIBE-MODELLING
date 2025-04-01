@@ -1,118 +1,292 @@
 /* BlockTwoDataEnrichment.css */
 
 .blockTwoContainer {
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #fff;
-}
-
-.seriesListContainer { /* Контейнер для списка с ограничением высоты */
-    max-height: 450px;
-    overflow-y: auto;
-    padding-right: 5px; /* Место для скроллбара */
-    margin-top: 10px;
-}
-
-.seriesPlaqueTwo { /* Используем другое имя класса, чтобы не конфликтовать с Блоком 1 */
-    display: flex;
-    align-items: center;
-    border: 1px solid #eee;
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    background-color: #f9f9f9;
-    font-size: 0.9em;
-    cursor: pointer; /* Для клика и визуализации */
-    transition: background-color 0.2s ease;
-}
-.seriesPlaqueTwo:hover {
-    background-color: #e9ecef;
-}
-
-/* Кнопка-иконка Rename */
-.renameIconButton {
-    background: none;
-    border: none;
-    padding: 0 4px 0 0; /* Убрали левый padding */
-    cursor: pointer;
-    color: #6c757d;
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    margin-right: 8px; /* Отступ справа от иконки */
-}
-.renameIconButton:hover {
-    color: #000; /* Темнее при наведении */
-}
-
-/* Контейнер для имени/поля ввода */
-.seriesNameContainer {
-    font-weight: 500;
-    flex-grow: 1; /* Занимает доступное место */
-    overflow: hidden;
-    margin-right: 10px; /* Отступ до кнопок справа */
-}
-.seriesNameSpan { /* Отображение имени */
-    display: block;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.editingInput { /* Поле ввода */
-    width: 100%;
-    padding: 2px 4px;
-    border: 1px solid #007bff;
-    outline: none;
-    font-size: inherit;
-    font-family: inherit;
-    font-weight: 500;
-    box-sizing: border-box;
-}
-
-/* Тег "S" для синтетических рядов */
-.syntheticTag {
-    font-size: 0.8em;
-    color: #6f42c1;
-    background-color: #e9d8fd;
-    padding: 1px 5px;
-    border-radius: 4px;
-    margin-left: 8px;
-    font-weight: bold;
-    cursor: default;
-    display: inline-block; /* Чтобы был на той же строке */
-    vertical-align: middle; /* Выравнивание по вертикали */
-}
-
-/* Контейнер для кнопок действий справа */
-.actionButtonsContainer {
-    flex-shrink: 0; /* Не сжиматься */
-}
-.actionButton {
-    margin-left: 5px;
-    padding: 3px 6px;
-    font-size: 0.8em;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    background-color: white;
-    transition: background-color 0.2s ease;
-}
-.actionButton:hover {
-    background-color: #e9ecef;
-}
-.actionButtonDelete { /* Отдельный стиль для кнопки Delete */
-    color: #dc3545;
-    border-color: #dc3545;
-}
-.actionButtonDelete:hover {
-    background-color: #f8d7da;
-}
-
-/* Сообщение об отсутствии данных */
-.noDataMessage {
+    padding: 10px 0; /* Добавляем немного вертикального отступа */
+    border-top: 1px solid #eee; /* Линия сверху для отделения */
+    margin-top: 15px; /* Отступ сверху */
+  }
+  
+  .blockTwoContainer h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  .noDataMessage {
     color: #888;
     font-style: italic;
-}
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .error-text {
+    color: #dc3545; /* Красный цвет для ошибок */
+    background-color: #f8d7da; /* Светло-красный фон */
+    border: 1px solid #f5c6cb; /* Красная рамка */
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+  }
+  
+  /* --- Стили для кнопок Select All / Unselect All --- */
+  .select-all-controls {
+    display: flex;
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    gap: 10px; /* Отступ между кнопками */
+    margin-bottom: 10px; /* Отступ снизу перед списком */
+    padding-bottom: 10px; /* Отступ внутри */
+    border-bottom: 1px solid #eee; /* Разделитель */
+  }
+  
+  .select-all-button {
+    padding: 4px 10px;
+    font-size: 0.85em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .select-all-button:hover {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+  }
+  /* --- */
+  
+  
+  .seriesListContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Пространство между плашками */
+    max-height: 40vh; /* Ограничение высоты для прокрутки, если нужно */
+    overflow-y: auto; /* Добавить прокрутку, если много рядов */
+    padding-right: 5px; /* Небольшой отступ справа для скроллбара */
+  }
+  
+  .seriesPlaqueTwo {
+    display: flex;
+    align-items: center; /* Выравнивание элементов по вертикали */
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; /* Добавили opacity в transition */
+    cursor: pointer; /* Указывает на кликабельность для просмотра графика */
+  }
+  
+  .seriesPlaqueTwo:hover {
+    background-color: #f8f9fa; /* Легкое выделение при наведении */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* --- Стили для отбора в Блоке 2 (С УНИКАЛЬНЫМИ КЛАССАМИ) --- */
+  
+  /* Затемнение плашки, если она НЕ выбрана для моделирования */
+  .series-plaque-unselected {
+    opacity: 0.65; /* Затемняем */
+    background-color: #f8f9fa; /* Можно добавить легкий фон */
+  }
+  /* Возвращаем нормальную прозрачность при наведении, даже если не выбрана */
+  .series-plaque-unselected:hover {
+    opacity: 1;
+    background-color: #f0f2f5; /* Чуть другой фон при наведении на невыбранную */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  
+  /* Стили для кнопки переключения отбора (НОВЫЙ КЛАСС) */
+  .b2-series-toggle-button { /* <<< ИЗМЕНЕНО */
+    background: none;
+    border: 1px solid transparent;
+    padding: 2px 4px;
+    margin-right: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+    /* Убеждаемся, что позиционирование статичное */
+    position: static;
+  }
+  
+  .b2-series-toggle-button:hover:not(:disabled) { /* <<< ИЗМЕНЕНО */
+    background-color: #e9ecef;
+    border-color: #ced4da;
+  }
+  
+  .b2-series-toggle-button:disabled { /* <<< ИЗМЕНЕНО */
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Цвет иконки внутри кнопки (НОВЫЕ КЛАССЫ) */
+  .b2-series-toggle-button-selected span { /* <<< ИЗМЕНЕНО */
+    color: #28a745; /* Зеленый */
+  }
+  
+  .b2-series-toggle-button-unselected span { /* <<< ИЗМЕНЕНО */
+    color: #dc3545; /* Красный */
+  }
+  /* --- Конец стилей для отбора --- */
+  
+  
+  .renameIconButton {
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    margin-left: 5px; /* Добавим отступ слева, после кнопки отбора */
+    margin-right: 8px; /* Отступ справа от иконки */
+    cursor: pointer;
+    color: #6c757d; /* Серый цвет иконки */
+    display: flex; /* Чтобы иконка была по центру */
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+  }
+  
+  .renameIconButton:hover {
+    background-color: #e2e6ea;
+    color: #000;
+  }
+  
+  .renameIconButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .seriesNameContainer {
+    flex-grow: 1; /* Занимает доступное пространство */
+    margin: 0 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    font-size: 0.9em; /* Немного уменьшим шрифт имени */
+  }
+  
+  .seriesNameSpan {
+    /* cursor: pointer; */ /* Убрали, т.к. клик по всей плашке */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block; /* Важно для text-overflow */
+  }
+  
+  /* --- СТИЛИ ДЛЯ ТЕГА 'S' (Обновленные) --- */
+  .syntheticTag {
+    display: inline-block;
+    margin-left: 6px; /* Отступ слева */
+    padding: 2px 6px; /* Немного увеличим внутренние отступы */
+    font-size: 0.75em; /* <<< Чуть увеличим размер шрифта */
+    font-weight: bold;
+    color: white; /* Оставим текст белым для контраста */
+    background-color: #20c997; /* <<< Новый сине-зеленый цвет (Teal) */
+    border-radius: 4px; /* Чуть увеличим скругление */
+    vertical-align: middle; /* Выравнивание по центру строки */
+    line-height: 1; /* Убрать лишнюю высоту строки */
+    cursor: help; /* Подсказка при наведении */
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1); /* Легкая тень для объема */
+    flex-shrink: 0; /* Не сжимать тег */
+  }
+  /* --- КОНЕЦ СТИЛЕЙ ДЛЯ ТЕГА 'S' --- */
+  
+  .editingInput {
+    width: 100%;
+    padding: 4px 6px;
+    border: 1px solid #0d6efd;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.9em; /* Тот же размер, что и у span */
+  }
+  
+  .actionButtonsContainer {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Пространство между кнопками */
+    margin-left: 10px; /* Отступ слева от кнопок */
+    flex-shrink: 0; /* Не сжимать контейнер кнопок */
+  }
+  
+  .actionButton {
+    padding: 3px 8px;
+    font-size: 0.8em; /* Маленький шрифт кнопок */
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; /* Предотвратить перенос текста на кнопках */
+  }
+  
+  .actionButton:hover:not(:disabled) {
+    background-color: #e2e6ea;
+    border-color: #adb5bd;
+  }
+  
+  .actionButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .actionButtonDelete {
+    background-color: #f8d7da; /* Красный фон для кнопки Delete */
+    border-color: #f5c6cb;
+    color: #721c24;
+  }
+  
+  .actionButtonDelete:hover:not(:disabled) {
+    background-color: #f1b0b7;
+    border-color: #eba1aa;
+    color: #491217;
+  }
+  
+  /* Стили для счетчика отобранных рядов (СКОРРЕКТИРОВАННЫЕ) */
+  .selectedCountDisplay {
+    margin-top: 15px; /* Уменьшим отступ сверху */
+    padding-top: 10px;
+    /* border-top: 1px solid #eee; */ /* Убрали верхнюю границу */
+    font-size: 1.0em; /* Сделали чуть меньше */
+    font-weight: normal; /* Убрали жирность */
+    color: #555; /* Сделали чуть светлее */
+    text-align: center;
+    margin-bottom: 10px; /* Добавили отступ снизу */
+  }
+  
+  /* --- Стили для кнопки "Отправить в модуль моделирования" --- */
+  .send-to-modeling-button {
+    display: block; /* Занимает всю ширину */
+    width: 100%;
+    padding: 12px 15px; /* Крупная кнопка */
+    margin-top: 15px; /* Отступ сверху */
+    font-size: 1.1em; /* Крупный шрифт */
+    font-weight: bold;
+    color: #fff;
+    background-color: #0d6efd; /* Синий цвет (Bootstrap primary) */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  
+  .send-to-modeling-button:hover:not(:disabled) {
+    background-color: #0b5ed7; /* Более темный синий при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .send-to-modeling-button:disabled {
+    background-color: #6c757d; /* Серый цвет для неактивной кнопки */
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.7;
+  }
+  /* --- */
+  
+  /* Стили для модального окна (оставляем закомментированными, т.к. используются inline) */
+  /* ... */

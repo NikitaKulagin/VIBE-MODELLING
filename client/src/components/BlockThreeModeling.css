@@ -1,0 +1,460 @@
+/* BlockThreeModeling.css */
+
+.blockThreeContainer {
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    margin-top: 15px;
+  }
+  
+  .blockThreeContainer h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    display: flex; /* Для выравнивания тега частоты */
+    align-items: center; /* Выравнивание по центру */
+  }
+  
+  /* Стиль для тега частоты рядом с заголовком */
+  .timeframe-tag-b3 {
+    display: inline-block;
+    margin-left: 10px;
+    padding: 3px 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    color: white;
+    background-color: #0d6efd; /* Синий */
+    border-radius: 4px;
+    vertical-align: middle;
+  }
+  
+  .noDataMessage {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+  }
+  .noDataMessage-small {
+      color: #888;
+      font-size: 0.9em;
+      margin: 5px 0;
+  }
+  
+  .modeling-section {
+    margin-bottom: 20px;
+  }
+  
+  /* Общий стиль для label внутри секций (кроме заголовка секции и option-label) */
+  .modeling-section > label:not(.section-label):not(.option-label) {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #555;
+  }
+  
+  .modeling-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Учитывать padding и border в ширине */
+    font-size: 0.95em;
+  }
+  .modeling-select:disabled {
+      background-color: #e9ecef;
+      opacity: 0.7;
+      cursor: not-allowed;
+  }
+  
+  
+  /* Стили для списка регрессоров */
+  .regressor-list {
+    max-height: 25vh; /* Ограничение высоты списка регрессоров */
+    overflow-y: auto;
+    border: 1px solid #eee;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #fdfdfd;
+  }
+  
+  .regressor-plaque {
+    display: flex;
+    align-items: center;
+    padding: 5px 8px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    border: 1px solid transparent; /* Для выравнивания */
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+  }
+  
+  .regressor-included {
+    background-color: #e9f5ee; /* Светло-зеленый фон для включенных */
+  }
+  
+  .regressor-excluded {
+    background-color: #f8f9fa; /* Серый фон для исключенных */
+    opacity: 0.7; /* Сделать исключенные полупрозрачными */
+  }
+  .regressor-excluded:hover {
+      opacity: 1; /* Полная прозрачность при наведении */
+  }
+  
+  .regressor-status-button {
+    background: none;
+    border: none;
+    padding: 0 5px 0 0; /* Отступ только справа */
+    margin-right: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .regressor-status-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+  }
+  
+  
+  .regressor-name {
+    flex-grow: 1;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  /* --- Стили для секции Model Options --- */
+  .model-options-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px; /* Отступ сверху от списка регрессоров */
+    background-color: #fdfdfd;
+  }
+  
+  .section-label {
+      display: block;
+      font-size: 1em; /* Чуть крупнее обычных label */
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 15px; /* Отступ под заголовком секции */
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+  }
+  
+  .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Адаптивная сетка */
+      gap: 20px 30px; /* Отступы между элементами сетки */
+      align-items: end; /* Выравнивание по нижнему краю для красоты */
+  }
+  
+  .option-group {
+      /* Стили для группы (заголовок + контрол) */
+  }
+  
+  .option-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600; /* Полужирный */
+      font-size: 0.9em;
+      color: #444;
+  }
+  
+  /* Стиль для тега частоты рядом с label лагов */
+  .timeframe-inline-b3 {
+    font-weight: normal;
+    font-size: 0.9em;
+    color: #6c757d; /* Серый */
+    margin-left: 5px;
+  }
+  
+  /* --- Стили для Сегментированного Контрола (Константа) --- */
+  .segmented-control {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden; /* Чтобы скругление работало */
+  }
+  
+  .segment-button {
+    flex-grow: 1; /* Растягиваем кнопки на всю ширину */
+    padding: 8px 10px;
+    border: none;
+    background-color: #fff; /* Фон неактивных */
+    color: #555;
+    cursor: pointer;
+    font-size: 0.9em;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-right: 1px solid #ccc; /* Разделитель */
+  }
+  
+  .segment-button:last-child {
+    border-right: none; /* Убираем разделитель у последней кнопки */
+  }
+  
+  .segment-button:hover:not(.active):not(:disabled) {
+    background-color: #f0f0f0; /* Фон при наведении на неактивную */
+  }
+  
+  .segment-button.active {
+    background-color: #0d6efd; /* Синий фон активной */
+    color: white; /* Белый текст активной */
+    font-weight: 600;
+    cursor: default; /* Убираем курсор у активной */
+  }
+  
+  .segment-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      background-color: #e9ecef;
+      color: #6c757d;
+  }
+  .segment-button.active:disabled {
+      background-color: #0d6efd; /* Оставляем цвет активной */
+      color: white;
+      opacity: 0.65;
+  }
+  
+  
+  /* --- Стили для Поля Ввода Лагов --- */
+  .modeling-input-number-styled {
+    width: 100px; /* Фиксированная ширина */
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    text-align: center;
+  }
+  .modeling-input-number-styled:disabled {
+      background-color: #e9ecef;
+      opacity: 0.7;
+      cursor: not-allowed;
+  }
+  
+  
+  /* Убираем стандартные стрелки у number input (опционально) */
+  .modeling-input-number-styled::-webkit-outer-spin-button,
+  .modeling-input-number-styled::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .modeling-input-number-styled[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+  }
+  
+  /* --- Стили для секций тестов и метрик --- */
+  .tests-metrics-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+    background-color: #fdfdfd;
+  }
+  
+  .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Адаптивная сетка */
+      gap: 10px 15px; /* Отступы между чекбоксами */
+  }
+  
+  .checkbox-label {
+      display: flex;
+      align-items: center;
+      font-weight: normal; /* Обычный шрифт */
+      font-size: 0.9em;
+      color: #333;
+      cursor: pointer;
+      margin-bottom: 0; /* Убираем стандартный отступ label */
+      transition: opacity 0.2s ease;
+  }
+  .checkbox-label.disabled-label {
+      cursor: not-allowed;
+      opacity: 0.6;
+  }
+  
+  
+  .checkbox-label input[type="checkbox"] {
+      margin-right: 8px; /* Отступ справа от чекбокса */
+      cursor: pointer;
+      /* accent-color: #0d6efd; */ /* Цвет галочки */
+  }
+  .checkbox-label input[type="checkbox"]:disabled {
+      cursor: not-allowed;
+  }
+  
+  
+  /* Стиль для label с инпутом внутри (p-value) */
+  .checkbox-label.inline-input {
+      gap: 5px; /* Небольшой отступ между элементами */
+  }
+  
+  .threshold-input {
+      width: 60px; /* Маленький инпут */
+      padding: 3px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 0.95em;
+      text-align: center;
+  }
+  .threshold-input:disabled {
+      background-color: #e9ecef;
+      opacity: 0.7;
+      cursor: not-allowed;
+  }
+  
+  /* --- Стили для секции запуска --- */
+  .run-section {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #ccc;
+      display: flex;
+      flex-direction: column; /* Элементы друг под другом */
+      align-items: center; /* Центрируем по горизонтали */
+      gap: 15px; /* Отступ между элементами */
+  }
+  
+  .estimated-runs {
+      font-size: 1.1em;
+      color: #555;
+  }
+  
+  .estimated-runs span {
+      font-weight: bold;
+      font-size: 1.3em; /* Крупнее */
+      color: #0d6efd; /* Синий */
+      margin-left: 8px;
+  }
+  
+  /* Стиль для ошибки запуска */
+  .error-text.run-error {
+      width: 100%; /* Занимать всю ширину */
+      text-align: center; /* Центрировать текст */
+      margin-top: 0; /* Убрать лишний верхний отступ */
+      margin-bottom: 0; /* Убрать лишний нижний отступ */
+      /* Наследует стили .error-text (цвет, фон и т.д.) */
+      color: #dc3545; /* Убедимся, что цвет красный */
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.9em;
+  }
+  
+  /* --- Контейнер для кнопок Run/Pause/Stop --- */
+  .run-controls-container {
+      display: flex;
+      gap: 10px; /* Отступ между кнопками */
+      align-items: center; /* Выравнивание по центру */
+      justify-content: center; /* Центрирование кнопок */
+      width: 100%; /* Занимать доступную ширину */
+  }
+  
+  /* Стили для кнопки Run */
+  .run-button {
+    padding: 12px 25px; /* Крупная кнопка */
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #fff;
+    background-color: #198754; /* Зеленый цвет (Bootstrap success) */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  
+  .run-button:hover:not(:disabled) {
+    background-color: #157347; /* Темнее зеленый */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .run-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.7;
+  }
+  
+  /* --- Стили для кнопок Pause/Resume и Stop --- */
+  .pause-button,
+  .stop-button {
+      padding: 10px 18px; /* Чуть меньше основной кнопки */
+      font-size: 1.0em; /* Шрифт поменьше */
+      font-weight: 500;
+      border: 1px solid #ced4da; /* Серая рамка */
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  
+  /* Кнопка Pause/Resume */
+  .pause-button {
+      background-color: #ffc107; /* Желтый (Bootstrap warning) */
+      border-color: #ffc107;
+      color: #000;
+  }
+  .pause-button:hover:not(:disabled) {
+      background-color: #ffca2c;
+      border-color: #ffc720;
+  }
+  /* Стиль для кнопки в состоянии Resume */
+  .pause-button.paused {
+      background-color: #198754; /* Зеленый, как Run */
+      border-color: #198754;
+      color: white;
+  }
+  .pause-button.paused:hover:not(:disabled) {
+      background-color: #157347;
+      border-color: #146c43;
+  }
+  
+  
+  /* Кнопка Stop */
+  .stop-button {
+      background-color: #dc3545; /* Красный (Bootstrap danger) */
+      border-color: #dc3545;
+      color: white;
+  }
+  .stop-button:hover:not(:disabled) {
+      background-color: #bb2d3b;
+      border-color: #b02a37;
+  }
+  
+  /* Общие стили для неактивных кнопок Pause/Stop */
+  .pause-button:disabled,
+  .stop-button:disabled {
+      background-color: #6c757d;
+      border-color: #6c757d;
+      cursor: not-allowed;
+      opacity: 0.65;
+  }
+  /* --- */
+  
+  
+  /* Стиль для отображения Job ID */
+  .job-id-display {
+      font-size: 0.8em;
+      color: #6c757d; /* Серый цвет */
+      margin-top: 5px; /* Небольшой отступ сверху */
+      font-family: monospace; /* Моноширинный шрифт */
+  }
+  
+  /* --- Стили для секции визуализации прогресса --- */
+  .progress-visualization-section {
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px dashed #ccc; /* Пунктирный разделитель */
+  }
+  
+  /* --- Старые стили (можно удалить) --- */
+  /*
+  .radio-group { ... }
+  .radio-group label { ... }
+  .radio-group input[type="radio"] { ... }
+  .modeling-options-grid { ... }
+  .modeling-input-number { ... }
+  */

@@ -5,7 +5,7 @@ import axios from 'axios';
 // Импортируем все компоненты блоков
 import BlockOneDataImport from './components/BlockOneDataImport';
 import BlockTwoDataEnrichment from './components/BlockTwoDataEnrichment'; // Добавили импорт
-// import BlockThreeModeling from './components/BlockThreeModeling'; // Задел на будущее
+import BlockThreeModeling from './components/BlockThreeModeling'; // Задел на будущее
 // import BlockFourResults from './components/BlockFourResults'; // Задел на будущее
 import TimeSeriesChart from './components/TimeSeriesChart';
 
@@ -26,6 +26,7 @@ function App() {
   const [processedData, setProcessedData] = useState(null);
   // Данные после Блока 2 (обогащение) - передаются в Блок 3
   const [enrichedData, setEnrichedData] = useState(null);
+  const [dataForModeling, setDataForModeling] = useState(null); // <<< НОВОЕ СОСТОЯНИЕ
   // Состояние hover для кнопки Reset
   const [isResetHoveredApp, setIsResetHoveredApp] = useState(false);
   // Ref для доступа к графику
@@ -38,6 +39,12 @@ function App() {
       .then(response => setBackendMessage(response.data.message))
       .catch(error => { setBackendMessage('Error connecting to backend.'); console.error("Backend connection error:", error); });
   }, []);
+
+  // --- НОВЫЙ useEffect: Сброс данных для моделирования при изменении обогащенных данных ---
+  useEffect(() => {
+    console.log("Enriched data changed, resetting data for modeling.");
+    setDataForModeling(null); // Сбрасываем данные для Блока 3, т.к. нужно перевыбрать
+  }, [enrichedData]);
 
   // Функция сброса зума
   const handleResetZoomApp = () => {
@@ -77,23 +84,26 @@ function App() {
                     processedData={processedData}      // Данные из Блока 1
                     setEnrichedData={setEnrichedData} // Функция для обновления данных после обогащения
                     setViewingSeries={setViewingSeries} // Функция для показа графика из этого блока
+                    onSendDataToModeling={setDataForModeling} // <<< ПЕРЕДАЕМ НОВЫЙ ПРОПС
                  />
              </div>
          )}
          {/* Разделитель показываем только если был Блок 2 */}
          {processedData && <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '15px 0', width: '100%', flexShrink: 0 }}/>}
 
-         {/* --- Блок 3: Моделирование (Placeholder) --- */}
+         {/* --- Блок 3: Моделирование --- */}
          {/* Показываем, только если есть данные после Блока 2 */}
          {enrichedData && (
              <div id="block3-controls" style={{ flexShrink: 0 }}>
-                 <h4>3. Modeling</h4>
-                 {/* <BlockThreeModeling enrichedData={enrichedData} ... /> */}
-                 <p>(Block 3 Controls Placeholder)</p>
+                 {/* <<< ЗАМЕНА Placeholder >>> */}
+                 <BlockThreeModeling
+                     enrichedData={dataForModeling} // <<< ИЗМЕНЕН ПРОПС
+                     // selectedSeriesForModeling={selectedForModeling} // Пока не передаем, т.к. в Блоке 2 нет пропса для этого
+                     // Передадим позже, когда будем передавать данные из Блока 2 в App
+                 />
              </div>
          )}
          {enrichedData && <hr style={{ border: 'none', borderTop: '1px solid #eee', margin: '15px 0', width: '100%', flexShrink: 0 }}/>}
-
 
          {/* --- Блок 4: Результаты (Placeholder) --- */}
          {/* {modelResults && ( ... )} */}
