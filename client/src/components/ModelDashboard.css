@@ -1,0 +1,99 @@
+/* ModelDashboard.css */
+
+/* --- Общий контейнер для всего дашборда результатов --- */
+.model-dashboard {
+    display: flex;
+    flex-direction: column; /* Элементы располагаются вертикально */
+    height: 100%; /* Занимает всю доступную высоту родителя (например, правой панели App.js) */
+    padding: 10px; /* Небольшой внутренний отступ */
+    box-sizing: border-box;
+    gap: 15px; /* Отступ между основными секциями дашборда */
+    background-color: #f8f9fa; /* Слегка серый фон для отличия */
+    border-radius: 5px;
+  }
+  
+  /* --- Контейнер для основной области (сетка выбора + детали/график) --- */
+  /* Используем flex для расположения бок о бок */
+  .dashboard-main-area {
+    display: flex;
+    flex-direction: row; /* Элементы (сетка и детали) располагаются горизонтально */
+    flex-grow: 1; /* Занимает все доступное вертикальное пространство */
+    gap: 15px; /* Отступ между левой и правой частями */
+    overflow: hidden; /* Предотвращаем выход контента */
+    min-height: 200px; /* Минимальная высота, чтобы не схлопывался */
+  }
+  
+  /* --- Левая часть: Контейнер для сетки/тепловой карты выбора моделей --- */
+  .model-selector-container {
+    flex: 1 1 40%; /* Занимает примерно 40% ширины, может сжиматься/растягиваться */
+    display: flex; /* Чтобы вложенный компонент мог растягиваться */
+    flex-direction: column;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 8px;
+    background-color: #fff;
+    overflow: auto; /* Добавляем скролл, если сетка не помещается */
+  }
+  
+  /* --- Правая часть: Контейнер для вывода деталей и графика декомпозиции --- */
+  .model-output-container {
+    flex: 1 1 60%; /* Занимает примерно 60% ширины */
+    display: flex;
+    flex-direction: column; /* Детали и график располагаются вертикально */
+    gap: 10px; /* Отступ между панелью деталей и графиком */
+    overflow: hidden; /* Предотвращаем выход контента */
+  }
+  
+  /* --- Стили для дочерних компонентов (можно вынести в их CSS) --- */
+  
+  /* Примерный стиль для панели деталей внутри правой части */
+  .model-details-panel { /* Предполагаемый класс для компонента деталей */
+    flex-shrink: 0; /* Не сжимается по вертикали */
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #fff;
+    max-height: 40vh; /* Ограничение высоты */
+    overflow-y: auto; /* Скролл для деталей */
+  }
+  .model-details-panel h5 {
+      margin-top: 0;
+      margin-bottom: 10px;
+  }
+  
+  /* Примерный стиль для контейнера графика декомпозиции */
+  .decomposition-chart-container { /* Предполагаемый класс для компонента графика */
+    flex-grow: 1; /* Занимает оставшееся место в правой колонке */
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 10px;
+    min-height: 150px; /* Минимальная высота */
+    position: relative; /* Для позиционирования самого графика */
+    overflow: hidden; /* Скрываем то, что не помещается */
+  }
+  
+  /* --- Заголовок дашборда (если нужен) --- */
+  .dashboard-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 1.2em;
+    color: #343a40;
+    flex-shrink: 0; /* Не сжимается */
+  }
+  
+  /* --- Сообщение-заглушка (если модель не выбрана) --- */
+  .output-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    font-style: italic;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    text-align: center;
+    padding: 20px;
+  }

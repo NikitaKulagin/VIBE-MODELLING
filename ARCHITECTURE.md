@@ -6,6 +6,7 @@
 ```
 VIBE_MODELING/
 ├── ARCHITECTURE.md
+├── Dashboard Subplan.docx
 ├── VIBE_MODELLING.docx
 ├── VIBE_MODELLING.pdf
 ├── Z1 Div and Corp Loans+levels.xlsx
@@ -32,8 +33,14 @@ VIBE_MODELING/
 │       │   ├── BlockThreeModeling.js
 │       │   ├── BlockTwoDataEnrichment.css
 │       │   ├── BlockTwoDataEnrichment.js
-│       │   ├── ModelProgressVisualizer.css
-│       │   ├── ModelProgressVisualizer.js
+│       │   ├── JobSummaryStats.css
+│       │   ├── JobSummaryStats.js
+│       │   ├── ModelDashboard.css
+│       │   ├── ModelDashboard.js
+│       │   ├── ModelResultsTable.css
+│       │   ├── ModelResultsTable.js
+│       │   ├── ModelScatterPlot.css
+│       │   ├── ModelScatterPlot.js
 │       │   └── TimeSeriesChart.js
 │       ├── index.css
 │       └── index.js
@@ -48,24 +55,29 @@ VIBE_MODELING/
 │   ├── step2_diff_abs.py
 │   ├── step2_diff_pct.py
 │   ├── step2_normalize.py
-│   └── step3_run_regression.py
+│   └── step3_run_regression_master.py
 ├── server.js
+├── server_config.json
 ├── updateArchitecture.py
 ├── uploads/
-└── ~$BE_MODELLING.docx
+├── ~$Z1 Div and Corp Loans+levels.xlsx
+└── ~$shboard Subplan.docx
 ```
 
 ### Папка: .
 Содержимые файлы:
 - ARCHITECTURE.md
+- Dashboard Subplan.docx
 - VIBE_MODELLING.docx
 - VIBE_MODELLING.pdf
 - Z1 Div and Corp Loans+levels.xlsx
 - package-lock.json
 - package.json
 - server.js
+- server_config.json
 - updateArchitecture.py
-- ~$BE_MODELLING.docx
+- ~$Z1 Div and Corp Loans+levels.xlsx
+- ~$shboard Subplan.docx
 
 **Детали по файлам:**
 - **Файл**: updateArchitecture.py (язык: python)
@@ -90,9 +102,7 @@ VIBE_MODELING/
     - *Импорты:* re
 - **Файл**: server.js (язык: js)
   - Function: **runPythonScript**
-    - *Описание:* ----------------------------------------------------------------------------- REQUIRED MODULES ----------------------------------------------------------------------------- --- ИСПРАВЛЕННЫЙ ИМПОРТ itertools --- ----------------------------------------------------------------------------- EXPRESS APP INITIALIZATION & CONFIGURATION ----------------------------------------------------------------------------- Увеличиваем лимиты для обработки потенциально больших данных в JSON и URL-encoded формах ----------------------------------------------------------------------------- MULTER CONFIGURATION (for File Uploads) ----------------------------------------------------------------------------- ----------------------------------------------------------------------------- HELPER FUNCTION FOR RUNNING PYTHON SCRIPTS -----------------------------------------------------------------------------
-  - Function: **sleep**
-    - *Описание:* --- Хранилище активных задач (в памяти) --- --- --- Вспомогательная функция для сна ---
+    - *Описание:* ----------------------------------------------------------------------------- REQUIRED MODULES ----------------------------------------------------------------------------- ----------------------------------------------------------------------------- CONFIGURATION READING ----------------------------------------------------------------------------- Optionally create a default config file if it doesn't exist try { fs.writeFileSync(configPath, JSON.stringify({ pythonExecutablePath: 'python3' }, null, 2), 'utf8'); console.log(`Created default config file: ${configPath}`); } catch (writeErr) { console.error(`Could not create default config file:`, writeErr); } ----------------------------------------------------------------------------- EXPRESS APP INITIALIZATION & CONFIGURATION ----------------------------------------------------------------------------- Increase limits for potentially large data in JSON and URL-encoded forms ----------------------------------------------------------------------------- MULTER CONFIGURATION (for File Uploads) ----------------------------------------------------------------------------- Ensure upload directory exists Configure multer storage Create a unique filename to avoid collisions ----------------------------------------------------------------------------- HELPER FUNCTION FOR RUNNING PYTHON SCRIPTS (Uses configured pythonCommand) -----------------------------------------------------------------------------
 
 ### Папка: client
 Содержимые файлы:
@@ -113,7 +123,7 @@ VIBE_MODELING/
 - **Файл**: index.html (язык: html)
   - Html: **index.html**
     - *Описание:* HTML файл
-    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/manifest.json
+    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico
 
 ### Папка: client/src
 Содержимые файлы:
@@ -128,9 +138,9 @@ VIBE_MODELING/
     - *Импорты:* ./App
 - **Файл**: App.js (язык: js)
   - Function: **App**
-    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
+    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее import ModelProgressVisualizer from './components/ModelProgressVisualizer'; // Больше не используется напрямую --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport, ./components/BlockThreeModeling, ./components/TimeSeriesChart
+    - *Импорты:* ./components/ModelDashboard, ./components/BlockThreeModeling, ./components/TimeSeriesChart, ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport
 
 ### Папка: client/src/components
 Содержимые файлы:
@@ -140,23 +150,41 @@ VIBE_MODELING/
 - BlockThreeModeling.js
 - BlockTwoDataEnrichment.css
 - BlockTwoDataEnrichment.js
-- ModelProgressVisualizer.css
-- ModelProgressVisualizer.js
+- JobSummaryStats.css
+- JobSummaryStats.js
+- ModelDashboard.css
+- ModelDashboard.js
+- ModelResultsTable.css
+- ModelResultsTable.js
+- ModelScatterPlot.css
+- ModelScatterPlot.js
 - TimeSeriesChart.js
 
 **Детали по файлам:**
+- **Файл**: ModelDashboard.js (язык: js)
+  - Function: **ModelDashboard**
+    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- Ключ - как он приходит из Python (или как мы его формируем в ModelResultsTable), Значение - как отображать пользователю Добавьте другие метрики по мере необходимости
+  - File_imports: **ModelDashboard.js**
+    - *Импорты:* ./JobSummaryStats, ./ModelScatterPlot, ./ModelResultsTable
+- **Файл**: JobSummaryStats.js (язык: js)
+  - Function: **JobSummaryStats**
+- **Файл**: ModelScatterPlot.js (язык: js)
+  - Function: **ModelScatterPlot**
+    - *Описание:* Определяем цвета для разных статусов/валидности invalid_constraints: 'rgba(255, 193, 7, 0.7)', // Желтый (пока не используется) Функция для безопасного извлечения метрики (может быть вложенной) Простые случаи (прямые метрики или кол-во регрессоров) Считаем количество ключей в data.coefficients, исключая 'const' Вложенные метрики (внутри data.metrics) Возвращаем null, если значение не числовое (например, Infinity для MAPE)
 - **Файл**: BlockTwoDataEnrichment.js (язык: js)
   - Function: **BlockTwoDataEnrichment**
     - *Описание:* --- Иконки --- --- Конец иконок --- Стили модального окна --- Принимаем новый пропс onSendDataToModeling ---
+- **Файл**: ModelResultsTable.js (язык: js)
+  - Function: **GlobalFilter**
+    - *Описание:* --- Вспомогательные компоненты для фильтрации ---
+  - Function: **ColumnFilter**
+  - Function: **ModelResultsTable**
+    - *Описание:* --- Основной компонент таблицы ---
 - **Файл**: BlockThreeModeling.js (язык: js)
   - Function: **combinations**
-    - *Описание:* Иконки для статуса регрессоров --- Вспомогательная функция для расчета комбинаций C(n, k) --- Помещаем её *вне* компонента
+    - *Описание:* Убрали импорт ModelProgressVisualizer Иконки для статуса регрессоров --- Вспомогательная функция для расчета комбинаций C(n, k) --- Помещаем её *вне* компонента
   - Function: **BlockThreeModeling**
-    - *Описание:* Оптимизация: C(n, k) == C(n, n-k) Деление делаем последним, чтобы уменьшить ошибки округления Округляем, т.к. результат всегда должен быть целым --- Конец вспомогательной функции ---
-  - File_imports: **BlockThreeModeling.js**
-    - *Импорты:* ./ModelProgressVisualizer
-- **Файл**: ModelProgressVisualizer.js (язык: js)
-  - Function: **ModelProgressVisualizer**
+    - *Описание:* Оптимизация: C(n, k) == C(n, n-k) Деление делаем последним, чтобы уменьшить ошибки округления Округляем, т.к. результат всегда должен быть целым --- Конец вспомогательной функции --- Принимаем новые пропсы: onJobStateChange, activeJobId, progressData enrichedData теперь содержит данные, выбранные в Блоке 2 для моделирования
 - **Файл**: BlockOneDataImport.js (язык: js)
   - Function: **BlockOneDataImport**
     - *Описание:* --- Иконки --- --- Конец иконок ---
@@ -169,7 +197,7 @@ VIBE_MODELING/
 - step2_diff_abs.py
 - step2_diff_pct.py
 - step2_normalize.py
-- step3_run_regression.py
+- step3_run_regression_master.py
 
 **Детали по файлам:**
 - **Файл**: step2_normalize.py (язык: python)
@@ -192,16 +220,20 @@ VIBE_MODELING/
     - *Описание:* ... (detect_data_blocks_v8 function remains exactly the same as V8) ...
   - Def: **process_excel_universal_v10**
     - *Описание:* V10 uses detect_data_blocks_v8 and NEW infer_frequency_robust_v10
+- **Файл**: step3_run_regression_master.py (язык: python)
+  - File_comment: **step3_run_regression_master.py**
+    - *Описание:* python_scripts/step3_run_regression_master.py
+  - Def: **log_error**
+  - Def: **log_info**
+  - Def: **log_warn**
+    - *Описание:* --- Функция для создания лагированных признаков (из старого скрипта) ---
+  - Def: **create_lagged_features**
+  - Def: **run_single_ols**
+  - Def: **run_regression_master**
 - **Файл**: step2_diff_pct.py (язык: python)
   - Def: **log_error**
   - Def: **log_info**
   - Def: **calculate_diff_pct**
-- **Файл**: step3_run_regression.py (язык: python)
-  - Def: **log_error**
-  - Def: **log_info**
-  - Def: **create_lagged_features**
-    - *Описание:* Создает DataFrame с лагированными признаками.
-  - Def: **run_single_regression**
 - **Файл**: get_sheets.py (язык: python)
   - Def: **log_debug**
 - **Файл**: step2_diff_abs.py (язык: python)

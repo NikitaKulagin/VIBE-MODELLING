@@ -1,0 +1,98 @@
+/* ModelScatterPlot.css */
+
+/* --- Основной контейнер для всего блока Scatter Plot --- */
+.model-scatter-plot-container {
+    display: flex;
+    flex-direction: column; /* Располагаем элементы вертикально */
+    height: 100%; /* Занимает всю доступную высоту родителя */
+    padding: 10px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    box-sizing: border-box;
+    overflow: hidden; /* Предотвращаем выход контента */
+  }
+  
+  /* --- Контейнер для элементов управления осями --- */
+  .axis-controls {
+    display: flex;
+    flex-wrap: wrap; /* Перенос на новую строку при необходимости */
+    gap: 15px; /* Отступ между контролами */
+    margin-bottom: 15px; /* Отступ снизу от графика */
+    padding-bottom: 10px; /* Отступ под контролами */
+    border-bottom: 1px solid #eee; /* Разделитель */
+    flex-shrink: 0; /* Не сжимается по вертикали */
+  }
+  
+  /* --- Группа для одного элемента управления (метка + селект) --- */
+  .axis-control-group {
+    display: flex;
+    align-items: center; /* Выравнивание по центру */
+    gap: 5px; /* Отступ между меткой и селектом */
+  }
+  
+  /* --- Метка для селекта оси --- */
+  .axis-label {
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap; /* Не переносить текст метки */
+  }
+  
+  /* --- Селект для выбора метрики оси --- */
+  .axis-select {
+    padding: 4px 8px; /* Компактные отступы */
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9em;
+    background-color: #fff;
+    cursor: pointer;
+    min-width: 120px; /* Минимальная ширина селекта */
+  }
+  .axis-select:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+  
+  /* --- Контейнер для самого графика Scatter Plot --- */
+  .scatter-plot-area {
+    flex-grow: 1; /* Занимает все оставшееся вертикальное пространство */
+    position: relative; /* Для позиционирования дочерних элементов (например, холста графика) */
+    min-height: 150px; /* Минимальная высота */
+    overflow: hidden; /* Скрываем все, что выходит за границы */
+  }
+  
+  /* --- Стиль для холста (canvas) или SVG графика --- */
+  /* Предполагается, что библиотека для графиков создаст такой элемент */
+  .scatter-plot-area canvas,
+  .scatter-plot-area svg {
+    display: block; /* Убирает лишние отступы */
+    width: 100% !important;  /* Заставляем занимать всю ширину контейнера */
+    height: 100% !important; /* Заставляем занимать всю высоту контейнера */
+  }
+  
+  /* --- Стиль для всплывающих подсказок (tooltip) графика --- */
+  /* Стилизация зависит от используемой библиотеки графиков (Chart.js, Plotly, etc.) */
+  /* Примерный общий стиль */
+  .chartjs-tooltip, /* Пример для Chart.js */
+  .plotly-tooltip { /* Пример для Plotly */
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    pointer-events: none; /* Чтобы не мешал взаимодействию с графиком */
+    white-space: nowrap;
+  }
+  
+  /* --- Стиль для сообщения-заглушки, если данных для графика нет --- */
+  .scatter-plot-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #6c757d;
+    font-style: italic;
+    text-align: center;
+  }

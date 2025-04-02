@@ -1,0 +1,127 @@
+/* ModelResultsTable.css */
+
+/* --- Контейнер для всей таблицы результатов --- */
+.model-results-table-container {
+    width: 100%; /* Занимает всю доступную ширину */
+    overflow-x: auto; /* Добавляет горизонтальный скролл, если таблица шире контейнера */
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    /* Опционально: ограничение по высоте и вертикальный скролл */
+    /* max-height: 50vh; */
+    /* overflow-y: auto; */
+  }
+  
+  /* --- Сама таблица --- */
+  .model-results-table {
+    width: 100%; /* Таблица растягивается на всю ширину контейнера */
+    border-collapse: collapse; /* Убираем двойные рамки между ячейками */
+    font-size: 0.85em; /* Уменьшенный шрифт для компактности */
+    color: #212529; /* Основной цвет текста */
+    table-layout: auto; /* Автоматическое определение ширины колонок (можно изменить на fixed) */
+    /* table-layout: fixed; */ /* Если нужно фиксировать ширину колонок */
+    /* word-wrap: break-word; */ /* Для переноса длинных слов в ячейках (если table-layout: fixed) */
+  }
+  
+  /* --- Заголовок таблицы (thead) --- */
+  .model-results-table thead {
+    background-color: #f8f9fa; /* Светлый фон для заголовка */
+    border-bottom: 2px solid #dee2e6; /* Жирная линия под заголовком */
+  }
+  
+  /* --- Ячейки заголовка (th) --- */
+  .model-results-table th {
+    padding: 8px 10px; /* Отступы внутри ячеек заголовка */
+    text-align: left; /* Выравнивание текста по левому краю */
+    font-weight: 600; /* Полужирный шрифт */
+    white-space: nowrap; /* Запрещаем перенос текста в заголовках */
+    vertical-align: middle; /* Выравнивание по вертикали */
+    cursor: pointer; /* Указываем, что по заголовку можно кликнуть (для сортировки) */
+    transition: background-color 0.2s ease;
+    position: relative; /* Для иконок сортировки */
+  }
+  .model-results-table th:hover {
+    background-color: #e9ecef; /* Подсветка при наведении */
+  }
+  
+  /* --- Иконки сортировки (добавляются через ::after или span) --- */
+  .model-results-table th .sort-icon {
+    display: inline-block;
+    margin-left: 5px;
+    opacity: 0.4; /* Полупрозрачные по умолчанию */
+    font-size: 0.9em;
+  }
+  .model-results-table th.sorted-asc .sort-icon::after {
+    content: ' ▲'; /* Стрелка вверх */
+    opacity: 1;
+  }
+  .model-results-table th.sorted-desc .sort-icon::after {
+    content: ' ▼'; /* Стрелка вниз */
+    opacity: 1;
+  }
+  .model-results-table th:hover .sort-icon {
+      opacity: 0.7; /* Поярче при наведении на заголовок */
+  }
+  
+  
+  /* --- Тело таблицы (tbody) --- */
+  .model-results-table tbody tr {
+    border-bottom: 1px solid #e9ecef; /* Линия между строками */
+    transition: background-color 0.15s ease;
+  }
+  .model-results-table tbody tr:last-child {
+    border-bottom: none; /* Убираем линию у последней строки */
+  }
+  .model-results-table tbody tr:hover {
+    background-color: #f1f3f5; /* Подсветка строки при наведении */
+  }
+  .model-results-table tbody tr.selected-row {
+    background-color: #cfe2ff; /* Выделение выбранной строки */
+    font-weight: 500;
+  }
+  
+  
+  /* --- Обычные ячейки данных (td) --- */
+  .model-results-table td {
+    padding: 6px 10px; /* Отступы внутри ячеек данных */
+    vertical-align: middle; /* Выравнивание по вертикали */
+    /* white-space: nowrap; */ /* Раскомментировать, если нужно запретить перенос */
+  }
+  
+  /* --- Выравнивание числовых ячеек по правому краю --- */
+  .model-results-table td.numeric {
+    text-align: right;
+    font-family: monospace; /* Моноширинный шрифт для чисел */
+  }
+  
+  /* --- Стиль для ID модели (если нужно) --- */
+  .model-results-table td.model-id {
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #6c757d;
+  }
+  
+  /* --- Стиль для булевых значений (например, is_valid) --- */
+  .model-results-table td.boolean-true {
+    color: #198754; /* Зеленый для true */
+    text-align: center;
+  }
+  .model-results-table td.boolean-false {
+    color: #dc3545; /* Красный для false */
+    text-align: center;
+  }
+  
+  /* --- Стиль для ячеек с ошибками (если нужно) --- */
+  .model-results-table td.error-cell {
+      color: #dc3545;
+      font-style: italic;
+      font-size: 0.9em;
+  }
+  
+  /* --- Сообщение, если таблица пуста --- */
+  .no-results-message {
+    padding: 20px;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+  }

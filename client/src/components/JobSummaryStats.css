@@ -1,0 +1,85 @@
+/* JobSummaryStats.css */
+
+/* --- Контейнер для всей сводной статистики --- */
+.job-summary-stats {
+    padding: 10px 15px; /* Внутренние отступы */
+    margin-bottom: 15px; /* Отступ снизу от других элементов */
+    background-color: #e9ecef; /* Светло-серый фон для выделения */
+    border: 1px solid #ced4da; /* Серая рамка */
+    border-radius: 5px; /* Скругленные углы */
+    font-size: 0.9em; /* Немного уменьшенный шрифт */
+    color: #495057; /* Темно-серый цвет текста */
+    display: flex; /* Используем flex для расположения элементов */
+    flex-wrap: wrap; /* Позволяем переносить элементы на новую строку */
+    gap: 10px 20px; /* Отступы между элементами (вертикальный и горизонтальный) */
+    align-items: center; /* Выравнивание по центру по вертикали */
+    flex-shrink: 0; /* Компонент не должен сжиматься по вертикали */
+  }
+  
+  /* --- Отдельный элемент статистики (например, "Status: running") --- */
+  .summary-item {
+    display: flex; /* Располагаем метку и значение рядом */
+    align-items: baseline; /* Выравнивание по базовой линии текста */
+    gap: 5px; /* Небольшой отступ между меткой и значением */
+  }
+  
+  /* --- Метка элемента статистики (например, "Status:") --- */
+  .summary-label {
+    font-weight: 600; /* Полужирный */
+    color: #343a40; /* Чуть темнее основного текста */
+  }
+  
+  /* --- Значение элемента статистики (например, "running") --- */
+  .summary-value {
+    font-weight: 500;
+  }
+  
+  /* --- Специальные стили для статуса (можно использовать бейджи) --- */
+  .summary-value.status {
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    background-color: #6c757d; /* Default: grey */
+    font-size: 0.95em; /* Чуть крупнее основного текста */
+  }
+  
+  /* Цвета для разных статусов (аналогично ModelProgressVisualizer) */
+  .summary-value.status-running { background-color: #0d6efd; } /* Blue */
+  .summary-value.status-finished { background-color: #198754; } /* Green */
+  .summary-value.status-error { background-color: #dc3545; } /* Red */
+  .summary-value.status-paused { background-color: #ffc107; color: #000;} /* Yellow */
+  .summary-value.status-stopped { background-color: #adb5bd; color: #000;} /* Light grey */
+  .summary-value.status-starting { background-color: #0dcaf0; color: #000;} /* Cyan */
+  
+  /* --- Стиль для прогресса (n / N) --- */
+  .summary-value.progress {
+    font-family: monospace; /* Моноширинный шрифт для чисел */
+    font-weight: bold;
+  }
+  
+  /* --- Стиль для ID задачи --- */
+  .summary-value.job-id {
+    font-family: monospace;
+    font-size: 0.9em; /* Чуть меньше */
+    color: #6c757d; /* Серый */
+  }
+  
+  /* --- Стиль для времени выполнения (если будет) --- */
+  .summary-value.elapsed-time {
+    font-style: italic;
+  }
+  
+  /* --- Стиль для сообщения об ошибке (если нужно выводить в сводке) --- */
+  .summary-item.error-message {
+    width: 100%; /* Занимает всю ширину, если есть ошибка */
+    color: #dc3545; /* Красный цвет */
+    font-weight: bold;
+    margin-top: 5px; /* Небольшой отступ сверху */
+  }
+  .summary-item.error-message .summary-label {
+      color: #dc3545;
+  }
+  .summary-item.error-message .summary-value {
+      white-space: normal; /* Позволяем переносить текст ошибки */
+  }

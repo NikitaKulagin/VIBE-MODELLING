@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'; // <<< Добавляем useRef
-import axios from 'axios'; // <<< Убедитесь, что axios импортирован
+import React, { useState, useEffect, useMemo } from 'react'; // Убрали useRef
+import axios from 'axios';
 import './BlockThreeModeling.css'; // Импортируем CSS
-import ModelProgressVisualizer from './ModelProgressVisualizer'; // <<< Импортируем визуализатор
+// Убрали импорт ModelProgressVisualizer
 
 // Иконки для статуса регрессоров
 const IncludeIcon = () => <span style={{ color: '#198754', fontWeight: 'bold', fontSize: '1.2em' }}>✓</span>; // Зеленая галочка
@@ -31,50 +31,48 @@ function combinations(n, k) {
 // --- Конец вспомогательной функции ---
 
 
-function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedData как пропс
-    // --- Состояния ---
-    const [availableSeries, setAvailableSeries] = useState([]); // Список имен всех рядов
-    const [dependentVariable, setDependentVariable] = useState(''); // Имя выбранной зависимой переменной (Y)
+// Принимаем новые пропсы: onJobStateChange, activeJobId, progressData
+// enrichedData теперь содержит данные, выбранные в Блоке 2 для моделирования
+function BlockThreeModeling({ enrichedData, onJobStateChange, activeJobId, progressData }) {
+    // --- Состояния Компонента (для UI настроек) ---
+    const [availableSeries, setAvailableSeries] = useState([]); // Список имен доступных рядов
+    const [dependentVariable, setDependentVariable] = useState(''); // Выбранная зависимая переменная (Y)
     const [regressorStatus, setRegressorStatus] = useState({}); // Статус регрессоров { name: 'include'/'exclude', ... }
-    const [constantStatus, setConstantStatus] = useState('include'); // 'include', 'exclude', 'test'
-    const [lagDepth, setLagDepth] = useState(0); // Глубина лагов N
-    const [targetTimeframe, setTargetTimeframe] = useState(''); // Частота данных
-    const [selectedTests, setSelectedTests] = useState({ vif: true, heteroskedasticity: true, pValue: true }); // Выбранные тесты
-    const [pValueThreshold, setPValueThreshold] = useState(0.05); // Порог p-value
-    const [selectedMetrics, setSelectedMetrics] = useState({ rSquared: true, mae: true, mape: false, rmse: false }); // Выбранные метрики
-    const [estimatedRuns, setEstimatedRuns] = useState(0); // Оценка числа прогонов
-    // Состояния для запуска
-    const [isRunning, setIsRunning] = useState(false); // Идет ли процесс моделирования
-    const [runError, setRunError] = useState(null);   // Ошибка при запуске/выполнении
-    const [jobId, setJobId] = useState(null);         // ID запущенного процесса (для будущего отслеживания)
-    const [isPaused, setIsPaused] = useState(false); // Отслеживаем паузу
-    // Состояние для прогресса
-    const [progressData, setProgressData] = useState(null); // Данные с эндпоинта прогресса
-    // Ref для интервала
-    const pollingIntervalRef = useRef(null); // Храним ID интервала
+    const [constantStatus, setConstantStatus] = useState('include'); // Статус константы: 'include', 'exclude', 'test'
+    const [lagDepth, setLagDepth] = useState(0); // Максимальная глубина лагов N
+    const [targetTimeframe, setTargetTimeframe] = useState(''); // Частота данных (извлекается из enrichedData)
+    const [selectedTests, setSelectedTests] = useState({ vif: true, heteroskedasticity: true, pValue: true }); // Выбранные стат. тесты
+    const [pValueThreshold, setPValueThreshold] = useState(0.05); // Порог p-value для теста
+    const [selectedMetrics, setSelectedMetrics] = useState({ rSquared: true, mae: true, mape: false, rmse: false }); // Выбранные метрики точности
+    const [estimatedRuns, setEstimatedRuns] = useState(0); // Оценка числа прогонов на основе настроек
+    const [runError, setRunError] = useState(null);   // Ошибка при взаимодействии с API (запуск/пауза/стоп)
+    // Убрали состояния jobId, progressData, isPaused, pollingIntervalRef - они теперь управляются в App.js
+
+    // --- Производные состояния (вычисляются из пропсов) ---
+    // Задача считается запущенной, если есть activeJobId и статус задачи не финальный
+    const isRunning = !!activeJobId && progressData?.status !== 'finished' && progressData?.status !== 'stopped' && progressData?.status !== 'error';
+    // Задача на паузе, если статус 'paused'
+    const isPaused = progressData?.status === 'paused';
 
     // --- Эффекты ---
 
-    // Обновление списка доступных рядов и сброс состояния при изменении входных данных
+    // 1. Инициализация и сброс состояния компонента при изменении входных данных (enrichedData)
     useEffect(() => {
-        if (enrichedData && typeof enrichedData === 'object') {
+        // Проверяем, что enrichedData существует и является объектом
+        if (enrichedData && typeof enrichedData === 'object' && Object.keys(enrichedData).length > 0) {
             const seriesNames = Object.keys(enrichedData);
             setAvailableSeries(seriesNames);
 
-            // Извлекаем частоту
-            if (seriesNames.length > 0) {
-                const firstSeriesKey = seriesNames[0];
-                const freq = enrichedData[firstSeriesKey]?.frequency || 'N/A';
-                setTargetTimeframe(freq);
-            } else {
-                setTargetTimeframe('');
-            }
+            // Извлекаем частоту из первого ряда (предполагаем, что она одинакова)
+            const firstSeriesKey = seriesNames[0];
+            const freq = enrichedData[firstSeriesKey]?.frequency || 'N/A';
+            setTargetTimeframe(freq);
 
-            // Сброс выбора Y и статуса регрессоров
-            const initialY = seriesNames.length > 0 ? seriesNames[0] : '';
+            // Устанавливаем начальное значение для Y (первый ряд)
+            const initialY = seriesNames[0];
             setDependentVariable(initialY);
 
-            // Инициализация статуса регрессоров
+            // Инициализируем статус регрессоров (все остальные - 'include')
             const initialStatus = {};
             seriesNames.forEach(name => {
                 if (name !== initialY) {
@@ -82,24 +80,18 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
                 }
             });
             setRegressorStatus(initialStatus);
+
+            // Сброс остальных настроек к значениям по умолчанию
             setConstantStatus('include');
             setLagDepth(0);
             setSelectedTests({ vif: true, heteroskedasticity: true, pValue: true });
             setPValueThreshold(0.05);
             setSelectedMetrics({ rSquared: true, mae: true, mape: false, rmse: false });
-            // Сброс состояния запуска
-            setIsRunning(false);
-            setRunError(null);
-            setJobId(null);
-            setIsPaused(false); // Сброс паузы
-            setProgressData(null); // Сброс данных прогресса
-            // Очищаем интервал, если он был
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-            }
+            setRunError(null); // Сбрасываем локальную ошибку
+            // Сброс состояния задачи (activeJobId и т.д.) происходит в App.js при изменении enrichedData
 
         } else {
+            // Если enrichedData пустые или некорректные, сбрасываем все
             setAvailableSeries([]);
             setDependentVariable('');
             setRegressorStatus({});
@@ -109,154 +101,85 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
             setSelectedTests({ vif: true, heteroskedasticity: true, pValue: true });
             setPValueThreshold(0.05);
             setSelectedMetrics({ rSquared: true, mae: true, mape: false, rmse: false });
-            setIsRunning(false);
             setRunError(null);
-            setJobId(null);
-            setIsPaused(false); // Сброс паузы
-            setProgressData(null); // Сброс данных прогресса
-            if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-            }
         }
-    }, [enrichedData]);
+    }, [enrichedData]); // Зависимость только от enrichedData
 
-    // Обновление статуса регрессоров при смене зависимой переменной
+    // 2. Обновление списка потенциальных регрессоров при смене зависимой переменной (Y)
     useEffect(() => {
+        // Не выполняем, если Y не выбрана или нет доступных рядов
         if (!dependentVariable || availableSeries.length === 0) return;
 
-        const initialStatus = {};
+        const newStatus = {};
         availableSeries.forEach(name => {
             if (name !== dependentVariable) {
-                initialStatus[name] = regressorStatus[name] || 'include';
+                // Сохраняем предыдущий статус регрессора, если он был, иначе ставим 'include'
+                newStatus[name] = regressorStatus[name] || 'include';
             }
         });
-        setRegressorStatus(initialStatus);
+        setRegressorStatus(newStatus);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dependentVariable, availableSeries]);
+    }, [dependentVariable, availableSeries]); // Не включаем regressorStatus в зависимости, чтобы избежать бесконечного цикла
 
-    // --- КОРРЕКТНЫЙ useEffect для расчета числа прогонов ---
+    // 3. Расчет оценочного числа прогонов при изменении настроек
     useEffect(() => {
+        // Получаем список имен включенных регрессоров
         const includedRegressors = Object.entries(regressorStatus)
                                         .filter(([_, status]) => status === 'include')
                                         .map(([name, _]) => name);
         const k = includedRegressors.length; // Количество включенных регрессоров
         const N = lagDepth; // Глубина лагов
 
-        let totalBaseModels = 0;
+        let totalBaseModels = 0; // Количество моделей без учета статуса константы
 
         // Перебираем все возможные размеры подмножеств регрессоров (m) от 0 до k
         for (let m = 0; m <= k; m++) {
-            // Количество способов выбрать m регрессоров из k
+            // Количество способов выбрать m регрессоров из k (C(k, m))
             const numCombinations = combinations(k, m);
-
-            // Количество лаговых комбинаций для подмножества размера m
+            // Количество комбинаций лагов (от 0 до N) для m регрессоров ((N+1)^m)
             const numLagCombinations = Math.pow(N + 1, m);
-
+            // Добавляем к общему числу базовых моделей
             totalBaseModels += numCombinations * numLagCombinations;
         }
 
-        let calculatedRuns = 0;
+        let calculatedRuns = 0; // Итоговое расчетное число
 
         // Корректируем на статус константы
         if (constantStatus === 'include') {
+            // Если константа всегда включена, число прогонов равно числу базовых моделей
             calculatedRuns = totalBaseModels;
         } else if (constantStatus === 'exclude') {
-            // Вычитаем модель без регрессоров (m=0) и без константы
-            calculatedRuns = totalBaseModels - 1;
+            // Если константа всегда выключена, вычитаем 1 модель (случай m=0, без регрессоров и без константы)
+            // Но только если есть хотя бы одна базовая модель
+             calculatedRuns = totalBaseModels > 0 ? totalBaseModels - 1 : 0;
+             // Отдельно обрабатываем случай k=0 (нет регрессоров) - тогда 0 моделей
+             if (k === 0) calculatedRuns = 0;
         } else { // constantStatus === 'test'
-            // Удваиваем все модели, кроме пустой (m=0), которая дает только 1 вариант (с константой)
-             calculatedRuns = (totalBaseModels - 1) * 2 + 1;
+            // Если константу тестируем:
+            // Модель без регрессоров (m=0) запускается 1 раз (только с константой)
+            // Все остальные (totalBaseModels - 1) запускаются 2 раза (с константой и без)
+            calculatedRuns = totalBaseModels > 0 ? (totalBaseModels - 1) * 2 + 1 : 0;
+             // Отдельно обрабатываем случай k=0 (нет регрессоров) - тогда 1 модель (только с константой)
+             if (k === 0) calculatedRuns = 1;
         }
 
-        // Исключаем невалидные случаи (например, exclude и нет регрессоров)
-        if (constantStatus === 'exclude' && k === 0) {
-             calculatedRuns = 0;
-        }
-         // Если k=0 и constant='test', то будет только 1 модель (только константа)
-         if (k === 0 && constantStatus === 'test') {
-             calculatedRuns = 1;
-         }
-
-        // Устанавливаем итоговое значение, не меньше 0
+        // Устанавливаем итоговое значение (не меньше 0)
         setEstimatedRuns(Math.max(0, Math.round(calculatedRuns)));
 
     }, [regressorStatus, lagDepth, constantStatus]); // Зависимости расчета
-    // --- Конец КОРРЕКТНОГО useEffect ---
 
-     // --- Эффект для очистки интервала при размонтировании ---
-     useEffect(() => {
-        // Функция очистки, которая будет вызвана при размонтировании компонента
-        return () => {
-            if (pollingIntervalRef.current) {
-                console.log("Clearing polling interval on unmount.");
-                clearInterval(pollingIntervalRef.current);
-            }
-        };
-    }, []); // Пустой массив зависимостей, чтобы выполнилось только при монтировании/размонтировании
-
-    // --- Функция для опроса прогресса ---
-    const pollProgress = async (currentJobId) => {
-        if (!currentJobId) return;
-        console.log(`Polling progress for job: ${currentJobId}`);
-        try {
-            const response = await axios.get(`http://localhost:5001/api/search_progress/${currentJobId}`);
-            setProgressData(response.data); // Обновляем данные прогресса
-
-            // Проверяем статус и останавливаем опрос, если нужно
-            if (response.data.status === 'finished' || response.data.status === 'stopped') {
-                console.log(`Job ${currentJobId} finished or stopped. Stopping polling.`);
-                setIsRunning(false); // Обновляем статус isRunning
-                setIsPaused(false); // Сбрасываем паузу
-                if (pollingIntervalRef.current) {
-                    clearInterval(pollingIntervalRef.current);
-                    pollingIntervalRef.current = null;
-                }
-            }
-        } catch (error) {
-            console.error(`Error polling progress for job ${currentJobId}:`, error);
-            setRunError(`Failed to get progress: ${error.message}`);
-            // Опционально: останавливаем опрос при ошибке
-            // if (pollingIntervalRef.current) {
-            //     clearInterval(pollingIntervalRef.current);
-            //     pollingIntervalRef.current = null;
-            // }
-            // setIsRunning(false);
-        }
-    };
-
-
-    // --- Обработчики ---
-    const handleDependentVarChange = (event) => {
-        setDependentVariable(event.target.value);
-    };
-
-    const toggleRegressorStatus = (name) => {
-        setRegressorStatus(prevStatus => ({
-            ...prevStatus,
-            [name]: prevStatus[name] === 'include' ? 'exclude' : 'include'
-        }));
-    };
-
-    const handleConstantStatusChange = (newStatus) => {
-        setConstantStatus(newStatus);
-    };
-
-    const handleLagChange = (event) => {
-        const value = parseInt(event.target.value, 10);
-        setLagDepth(isNaN(value) || value < 0 ? 0 : value);
-    };
-
+    // --- Обработчики UI ---
+    const handleDependentVarChange = (event) => setDependentVariable(event.target.value);
+    const toggleRegressorStatus = (name) => setRegressorStatus(prev => ({ ...prev, [name]: prev[name] === 'include' ? 'exclude' : 'include' }));
+    const handleConstantStatusChange = (newStatus) => setConstantStatus(newStatus);
+    const handleLagChange = (event) => setLagDepth(Math.max(0, parseInt(event.target.value, 10) || 0));
+    // Обработчик для чекбоксов тестов
     const handleTestChange = (event) => {
         const { name, checked } = event.target;
         setSelectedTests(prev => ({ ...prev, [name]: checked }));
     };
-
-    const handlePValueThresholdChange = (event) => {
-        const value = parseFloat(event.target.value);
-        setPValueThreshold(isNaN(value) ? 0.05 : Math.max(0, Math.min(1, value)));
-    };
-
+    const handlePValueThresholdChange = (event) => setPValueThreshold(Math.max(0, Math.min(1, parseFloat(event.target.value) || 0.05)));
+    // Обработчик для чекбоксов метрик
     const handleMetricChange = (event) => {
         const { name, checked } = event.target;
         setSelectedMetrics(prev => ({ ...prev, [name]: checked }));
@@ -264,144 +187,139 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
 
     // --- Обработчик ЗАПУСКА МОДЕЛИРОВАНИЯ ---
     const handleRunModeling = async () => {
-        if (!dependentVariable || !enrichedData[dependentVariable]) {
+        // Проверка наличия Y
+        if (!dependentVariable || !enrichedData || !enrichedData[dependentVariable]) {
             alert("Please select a valid dependent variable.");
             return;
         }
-
-        setIsRunning(true);
-        setIsPaused(false); // Сбрасываем паузу при новом запуске
-        setRunError(null);
-        setJobId(null); // Сбрасываем предыдущий jobId
-        setProgressData(null); // Сбрасываем старые данные прогресса
-        if (pollingIntervalRef.current) { // Очищаем старый интервал, если был
-             clearInterval(pollingIntervalRef.current);
-             pollingIntervalRef.current = null;
-        }
-
+        setRunError(null); // Сбрасываем предыдущую ошибку
 
         // 1. Собираем данные для Y
         const yVariable = {
             name: dependentVariable,
-            data: enrichedData[dependentVariable].data
+            data: enrichedData[dependentVariable].data,
+            // Можно добавить частоту, если она нужна скрипту
+            // frequency: enrichedData[dependentVariable]?.frequency
         };
 
-        // 2. Собираем данные для включенных X
+        // 2. Собираем данные для ВСЕХ включенных регрессоров X
         const includedRegressorsData = {};
         Object.entries(regressorStatus).forEach(([name, status]) => {
             if (status === 'include' && enrichedData[name]) {
                 includedRegressorsData[name] = enrichedData[name].data;
+                 // Можно добавить частоту для каждого регрессора
+                 // includedRegressorsData[name].frequency = enrichedData[name]?.frequency;
             }
         });
 
-        // 3. Формируем payload
+        // 3. Формируем payload для API
         const payload = {
             dependentVariable: yVariable,
-            regressors: includedRegressorsData, // Объект { имя: [[ts, val], ...], ... }
-            config: {
+            regressors: includedRegressorsData, // Передаем данные только включенных регрессоров
+            config: { // Передаем конфигурацию моделирования
                 constantStatus: constantStatus,
                 maxLagDepth: lagDepth,
                 tests: selectedTests,
                 pValueThreshold: pValueThreshold,
                 metrics: selectedMetrics,
-                targetTimeframe: targetTimeframe // Добавляем частоту
-                // Добавить сюда другие параметры конфигурации, если нужно
+                targetTimeframe: targetTimeframe // Передаем частоту
             }
         };
 
         console.log("Starting regression search with payload:", payload);
 
         try {
-            // Отправляем запрос на новый эндпоинт
+            // Отправляем POST-запрос на запуск задачи
             const response = await axios.post('http://localhost:5001/api/start_regression_search', payload);
 
+            // Если бэкенд вернул jobId, значит задача успешно инициирована
             if (response.data && response.data.jobId) {
-                const newJobId = response.data.jobId;
-                setJobId(newJobId);
-                console.log(`Regression search started. Job ID: ${newJobId}. Starting polling...`);
-                // --- ЗАПУСКАЕМ POLLING ---
-                setProgressData({ status: 'running', progress: 0, totalModels: estimatedRuns, results: {} }); // Начальное состояние
-                pollingIntervalRef.current = setInterval(() => {
-                    pollProgress(newJobId); // Передаем ID в функцию опроса
-                }, 2000); // Опрашиваем каждые 2 секунды
-                // ---
+                // Вызываем callback-функцию, переданную из App.js,
+                // чтобы обновить состояние App (установить activeJobId и estimatedRunsForJob)
+                onJobStateChange(response.data.jobId, estimatedRuns);
+                console.log(`Regression search initiated. Job ID: ${response.data.jobId}.`);
             } else {
-                throw new Error(response.data?.error || "Invalid response from server.");
+                // Если ответ некорректный
+                throw new Error(response.data?.error || "Invalid response from server when starting job.");
             }
         } catch (err) {
+            // Обработка ошибок при запуске
             console.error("Error starting regression search:", err);
-            setRunError(err.response?.data?.error || err.message || "Failed to start search.");
-            setIsRunning(false);
+            const errorMsg = err.response?.data?.error || err.message || "Failed to start search.";
+            setRunError(errorMsg); // Показываем ошибку пользователю
+            // Сообщаем App, что запуск не удался (сбрасываем jobId)
+            onJobStateChange(null, 0);
         }
     };
-    // ---
 
-    // --- Обработчики ПАУЗЫ/СТОПА ---
+    // --- Обработчики ПАУЗЫ/ВОЗОБНОВЛЕНИЯ ---
     const handlePauseModeling = async () => {
-        if (!jobId || !isRunning) return;
-        const newPausedState = !isPaused;
-        console.log(`${newPausedState ? 'Pausing' : 'Resuming'} job: ${jobId}`);
-        setRunError(null);
+        // Не выполняем, если нет активной задачи или она не в состоянии 'running'/'paused'
+        if (!activeJobId || !isRunning) return;
+
+        // Определяем, нужно поставить на паузу или возобновить
+        const newPausedState = !isPaused; // isPaused вычисляется из progressData.status
+        console.log(`${newPausedState ? 'Pausing' : 'Resuming'} job: ${activeJobId}`);
+        setRunError(null); // Сбрасываем предыдущую ошибку
+
         try {
-            await axios.post(`http://localhost:5001/api/pause_search/${jobId}`, { pause: newPausedState });
-            setIsPaused(newPausedState);
-            console.log(`Job ${jobId} ${newPausedState ? 'paused' : 'resumed'} successfully.`);
-            // Обновляем статус в progressData для немедленного отображения
-            setProgressData(prev => prev ? {...prev, status: newPausedState ? 'paused' : 'running'} : null);
+            // Отправляем запрос на бэкенд
+            await axios.post(`http://localhost:5001/api/pause_search/${activeJobId}`, { pause: newPausedState });
+            console.log(`Job ${activeJobId} ${newPausedState ? 'pause' : 'resume'} request sent.`);
+            // Фактическое обновление статуса (isPaused) произойдет автоматически,
+            // когда App.js получит обновленные данные через polling и передаст их сюда как progressData.
         } catch (err) {
-             console.error(`Error ${newPausedState ? 'pausing' : 'resuming'} job ${jobId}:`, err);
-             setRunError(err.response?.data?.error || err.message || `Failed to ${newPausedState ? 'pause' : 'resume'} job.`);
+             const errorMsg = err.response?.data?.error || err.message || `Failed to ${newPausedState ? 'pause' : 'resume'} job.`;
+             console.error(`Error ${newPausedState ? 'pausing' : 'resuming'} job ${activeJobId}:`, err);
+             setRunError(errorMsg); // Показываем ошибку
         }
     };
 
+    // --- Обработчик ОСТАНОВКИ ---
     const handleStopModeling = async () => {
-        if (!jobId || !isRunning) return;
-        console.log(`Stopping job: ${jobId}`);
-        setRunError(null);
-
-         // --- ОСТАНАВЛИВАЕМ POLLING ---
-         if (pollingIntervalRef.current) {
-             clearInterval(pollingIntervalRef.current);
-             pollingIntervalRef.current = null;
-             console.log("Polling stopped.");
-         }
-         // ---
+        // Не выполняем, если нет активной задачи или она не запущена/на паузе
+        if (!activeJobId || !isRunning) return;
+        console.log(`Stopping job: ${activeJobId}`);
+        setRunError(null); // Сбрасываем ошибку
 
         try {
-            await axios.post(`http://localhost:5001/api/stop_search/${jobId}`);
-            console.log(`Job ${jobId} stop request sent successfully.`);
+            // Отправляем запрос на остановку
+            await axios.post(`http://localhost:5001/api/stop_search/${activeJobId}`);
+            console.log(`Job ${activeJobId} stop request sent successfully.`);
+            // Обновление статуса (isRunning станет false) произойдет автоматически
+            // через polling в App.js.
+            // Опционально: можно вызвать onJobStateChange(null, 0) здесь,
+            // чтобы App немедленно убрал activeJobId и скрыл панель прогресса,
+            // не дожидаясь следующего polling'а.
+            // onJobStateChange(null, 0);
         } catch (err) {
-             console.error(`Error stopping job ${jobId}:`, err);
-             setRunError(err.response?.data?.error || err.message || "Failed to stop job.");
-        } finally {
-             // Сбрасываем состояния на фронтенде независимо от ответа сервера
-             setIsRunning(false);
-             setIsPaused(false);
-             // Обновляем статус в progressData
-             setProgressData(prev => prev ? {...prev, status: 'stopped'} : { status: 'stopped' });
-             // jobId можно оставить для информации
+             const errorMsg = err.response?.data?.error || err.message || "Failed to stop job.";
+             console.error(`Error stopping job ${activeJobId}:`, err);
+             setRunError(errorMsg); // Показываем ошибку
         }
     };
-    // ---
 
-    // --- Мемоизация списка регрессоров ---
+    // --- Мемоизация списка потенциальных регрессоров (X) ---
+    // Создаем список регрессоров, исключая выбранную зависимую переменную Y
     const potentialRegressors = useMemo(() => {
         return availableSeries.filter(name => name !== dependentVariable);
     }, [availableSeries, dependentVariable]);
 
-    // --- JSX ---
+    // --- JSX Рендеринг Компонента ---
+    // Если нет данных для моделирования, показываем сообщение
     if (!enrichedData || availableSeries.length === 0) {
         return (
             <div className="blockThreeContainer">
                 <h4>3. Modeling - Regression</h4>
-                <p className="noDataMessage">Waiting for enriched data from Block 2...</p>
+                <p className="noDataMessage">Select data for modeling in Block 2.</p>
             </div>
         );
     }
 
+    // Основной рендер компонента
     return (
         <div className="blockThreeContainer">
-            {/* Отображение частоты рядом с заголовком */}
+            {/* Заголовок с частотой данных */}
             <h4>3. Modeling - Regression {targetTimeframe && <span className="timeframe-tag-b3">Freq: {targetTimeframe}</span>}</h4>
 
             {/* Выбор зависимой переменной (Y) */}
@@ -412,9 +330,9 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
                     value={dependentVariable}
                     onChange={handleDependentVarChange}
                     className="modeling-select"
-                    disabled={isRunning} // Блокируем во время выполнения
+                    disabled={isRunning} // Блокируем выбор во время выполнения задачи
                 >
-                    {availableSeries.length === 0 && <option value="">-- No series available --</option>}
+                    {/* Динамически генерируем опции */}
                     {availableSeries.map(name => (
                         <option key={name} value={name}>{name}</option>
                     ))}
@@ -427,36 +345,36 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
                 <div className="regressor-list">
                     {potentialRegressors.length > 0 ? (
                         potentialRegressors.map(name => {
-                            const status = regressorStatus[name] || 'exclude';
+                            const status = regressorStatus[name] || 'exclude'; // Статус регрессора
                             const isIncluded = status === 'include';
-                            const plaqueClass = `regressor-plaque ${isIncluded ? 'regressor-included' : 'regressor-excluded'}`;
-                            const buttonTitle = isIncluded ? 'Exclude from modeling' : 'Include in modeling';
-
                             return (
-                                <div key={name} className={plaqueClass}>
+                                <div key={name} className={`regressor-plaque ${isIncluded ? 'regressor-included' : 'regressor-excluded'}`}>
+                                    {/* Кнопка для включения/исключения регрессора */}
                                     <button
                                         className="regressor-status-button"
                                         onClick={() => toggleRegressorStatus(name)}
-                                        title={buttonTitle}
+                                        title={isIncluded ? 'Exclude from modeling' : 'Include in modeling'}
                                         disabled={isRunning} // Блокируем во время выполнения
                                     >
                                         {isIncluded ? <IncludeIcon /> : <ExcludeIcon />}
                                     </button>
+                                    {/* Имя регрессора */}
                                     <span className="regressor-name" title={name}>{name}</span>
                                 </div>
                             );
                         })
                     ) : (
+                        // Сообщение, если нет доступных регрессоров
                         <p className="noDataMessage-small">No potential regressors available (Select a different Y?).</p>
                     )}
                 </div>
             </div>
 
-            {/* Настройки модели */}
+            {/* Настройки модели (Константа, Лаги) */}
             <div className="modeling-section model-options-section">
                 <label className="section-label">Model Options:</label>
                 <div className="options-grid">
-                    {/* Константа */}
+                    {/* Выбор статуса константы */}
                     <div className="option-group">
                         <label className="option-label">Constant Term:</label>
                         <div className="segmented-control">
@@ -465,14 +383,14 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
                             <button type="button" className={`segment-button ${constantStatus === 'test' ? 'active' : ''}`} onClick={() => handleConstantStatusChange('test')} disabled={isRunning}>Test</button>
                         </div>
                     </div>
-                    {/* Глубина лагов */}
+                    {/* Ввод максимальной глубины лагов */}
                     <div className="option-group">
                         <label htmlFor="lag-depth-input" className="option-label">Max Lag Depth (N):</label>
                         <input
                             type="number" id="lag-depth-input" value={lagDepth}
                             onChange={handleLagChange} min="0" step="1"
                             className="modeling-input-number-styled"
-                            disabled={isRunning} // Блокируем во время выполнения
+                            disabled={isRunning}
                         />
                     </div>
                 </div>
@@ -482,21 +400,25 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
             <div className="modeling-section tests-metrics-section">
                 <label className="section-label">Statistical Tests:</label>
                 <div className="checkbox-grid">
+                    {/* Чекбокс VIF */}
                     <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
                         <input type="checkbox" name="vif" checked={selectedTests.vif} onChange={handleTestChange} disabled={isRunning} />
                         VIF (Collinearity)
                     </label>
+                    {/* Чекбокс Heteroskedasticity */}
                     <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
                         <input type="checkbox" name="heteroskedasticity" checked={selectedTests.heteroskedasticity} onChange={handleTestChange} disabled={isRunning} />
                         Heteroskedasticity (BP)
                     </label>
+                    {/* Чекбокс и поле для Max p-value */}
                     <label className={`checkbox-label inline-input ${isRunning ? 'disabled-label' : ''}`}>
                         <input type="checkbox" name="pValue" checked={selectedTests.pValue} onChange={handleTestChange} disabled={isRunning} />
                         Max p-value ≤
                         <input
                             type="number" value={pValueThreshold} onChange={handlePValueThresholdChange}
                             min="0" max="1" step="0.01" className="threshold-input"
-                            disabled={!selectedTests.pValue || isRunning} // Деактивируем, если тест не выбран ИЛИ идет выполнение
+                            // Блокируем поле ввода, если сам тест не выбран или задача запущена
+                            disabled={!selectedTests.pValue || isRunning}
                         />
                     </label>
                 </div>
@@ -506,76 +428,61 @@ function BlockThreeModeling({ enrichedData }) { // Принимаем enrichedDa
             <div className="modeling-section tests-metrics-section">
                 <label className="section-label">Accuracy Metrics:</label>
                 <div className="checkbox-grid">
-                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
-                        <input type="checkbox" name="rSquared" checked={selectedMetrics.rSquared} onChange={handleMetricChange} disabled={isRunning} />
-                        R-squared (R²)
-                    </label>
-                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
-                        <input type="checkbox" name="mae" checked={selectedMetrics.mae} onChange={handleMetricChange} disabled={isRunning} />
-                        MAE
-                    </label>
-                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
-                        <input type="checkbox" name="mape" checked={selectedMetrics.mape} onChange={handleMetricChange} disabled={isRunning} />
-                        MAPE
-                    </label>
-                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}>
-                        <input type="checkbox" name="rmse" checked={selectedMetrics.rmse} onChange={handleMetricChange} disabled={isRunning} />
-                        RMSE
-                    </label>
+                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}> <input type="checkbox" name="rSquared" checked={selectedMetrics.rSquared} onChange={handleMetricChange} disabled={isRunning} /> R-squared (R²) </label>
+                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}> <input type="checkbox" name="mae" checked={selectedMetrics.mae} onChange={handleMetricChange} disabled={isRunning} /> MAE </label>
+                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}> <input type="checkbox" name="mape" checked={selectedMetrics.mape} onChange={handleMetricChange} disabled={isRunning} /> MAPE </label>
+                    <label className={`checkbox-label ${isRunning ? 'disabled-label' : ''}`}> <input type="checkbox" name="rmse" checked={selectedMetrics.rmse} onChange={handleMetricChange} disabled={isRunning} /> RMSE </label>
                 </div>
             </div>
 
-            {/* Отображение числа прогонов и кнопки Run/Pause/Stop */}
+            {/* Секция Запуска Моделирования */}
             <div className="modeling-section run-section">
+                 {/* Отображение оценочного числа прогонов */}
                  <div className="estimated-runs">
                      Estimated model runs: <span>{estimatedRuns.toLocaleString()}</span>
                  </div>
+                 {/* Отображение ошибки запуска/паузы/стопа */}
                  {runError && <p className="error-text run-error">{runError}</p>}
 
-                 {/* Контейнер для кнопок управления */}
+                 {/* Контейнер для кнопок управления запуском */}
                  <div className="run-controls-container">
+                     {/* Кнопка Run/Running */}
                      <button
                         className="run-button"
                         onClick={handleRunModeling}
-                        disabled={estimatedRuns === 0 || !dependentVariable || isRunning} // Нельзя запустить, если уже запущено
+                        // Блокируем, если нет моделей для запуска, не выбрана Y, или задача уже запущена
+                        disabled={estimatedRuns === 0 || !dependentVariable || isRunning}
                      >
-                        {isRunning ? 'Running...' : 'Run Model Search'} {/* Меняем текст кнопки */}
+                        {isRunning ? 'Running...' : 'Run Model Search'}
                      </button>
 
-                     {/* Кнопки Пауза/Стоп показываются только во время выполнения */}
+                     {/* Кнопки Пауза/Стоп (показываются только во время выполнения) */}
                      {isRunning && (
                          <>
+                             {/* Кнопка Pause/Resume */}
                              <button
-                                className={`pause-button ${isPaused ? 'paused' : ''}`} // Добавляем класс для стилизации паузы
+                                className={`pause-button ${isPaused ? 'paused' : ''}`} // Стиль меняется в зависимости от статуса паузы
                                 onClick={handlePauseModeling}
-                                disabled={!jobId} // Нельзя нажать, пока не получен jobId
+                                disabled={!activeJobId} // Блокируем, если нет ID задачи (на всякий случай)
                              >
                                 {isPaused ? 'Resume' : 'Pause'}
                              </button>
+                             {/* Кнопка Stop */}
                              <button
                                 className="stop-button"
                                 onClick={handleStopModeling}
-                                disabled={!jobId} // Нельзя нажать, пока не получен jobId
+                                disabled={!activeJobId} // Блокируем, если нет ID задачи
                              >
                                 Stop
                              </button>
                          </>
                      )}
                  </div>
-                 {/* --- */}
-
-                 {jobId && <p className="job-id-display">Job ID: {jobId} {progressData?.status ? `(${progressData.status})` : ''}</p>}
+                 {/* Отображаем ID активной задачи и ее статус (если есть) */}
+                 {activeJobId && <p className="job-id-display">Job ID: {activeJobId} {progressData?.status ? `(${progressData.status})` : '(starting...)'}</p>}
             </div>
 
-             {/* --- ДОБАВЛЕН КОМПОНЕНТ ВИЗУАЛИЗАЦИИ ПРОГРЕССА --- */}
-             {/* Показываем, если есть jobId или данные прогресса */}
-             {(jobId || progressData) && (
-                 <div className="modeling-section progress-visualization-section">
-                      <ModelProgressVisualizer progressData={progressData} />
-                 </div>
-             )}
-             {/* --- */}
-
+             {/* Визуализатор прогресса УБРАН отсюда, он теперь в App.js */}
 
         </div> // Конец blockThreeContainer
     );
