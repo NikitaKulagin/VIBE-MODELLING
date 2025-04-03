@@ -6,8 +6,8 @@ import './ModelDashboard.css';
 import JobSummaryStats from './JobSummaryStats';
 import ModelScatterPlot from './ModelScatterPlot';
 import ModelResultsTable from './ModelResultsTable';
-import DecompositionChart from './DecompositionChart';
-import ErrorBoundary from './ErrorBoundary';
+import DecompositionChart from './DecompositionChart'; // <<< НОВЫЙ ИМПОРТ
+import ErrorBoundary from './ErrorBoundary'; // <<< ДОБАВИТЬ ИМПОРТ
 
 // --- Определяем доступные метрики для осей графика ---
 const AVAILABLE_METRICS = {
@@ -32,22 +32,20 @@ function ModelDashboard({ progressData, totalRuns }) {
     const [scatterXAxis, setScatterXAxis] = useState('r_squared');
     const [scatterYAxis, setScatterYAxis] = useState('numRegressors');
     const [filters, setFilters] = useState({ showOnlyValid: false });
-    const [selectedModelDetails, setSelectedModelDetails] = useState(null);
+    const [selectedModelDetails, setSelectedModelDetails] = useState(null); // Содержит { id, coefficients, p_values, ... }
     const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+
+    // <<< НОВЫЕ СОСТОЯНИЯ для декомпозиции >>>
     const [decompositionData, setDecompositionData] = useState(null);
     const [isDecompLoading, setIsDecompLoading] = useState(false);
     const [decompError, setDecompError] = useState(null);
+    // <<< КОНЕЦ НОВЫХ СОСТОЯНИЙ >>>
 
-    // console.log('[ModelDashboard Render] Received progressData:', !!progressData); // Убрали лог
-
-    // --- Расчет сводной статистики ---
+    // --- Расчет сводной статистики (без изменений) ---
     const summaryStats = useMemo(() => {
-        // console.log('[summaryStats useMemo] Calculating. progressData exists:', !!progressData); // Убрали лог
         if (!progressData || !progressData.results) {
-            // console.warn('[summaryStats useMemo] progressData or progressData.results missing. Returning default stats.'); // Убрали лог
             return { processed: 0, total: totalRuns || 0, valid: 0, invalidStats: 0, invalidConstraints: 0, skipped: 0, error: 0 };
         }
-
         const results = progressData.results;
         const modelIds = Object.keys(results);
         let validCount = 0, invalidStatsCount = 0, skippedCount = 0, errorCount = 0;
@@ -64,24 +62,17 @@ function ModelDashboard({ progressData, totalRuns }) {
                 default: break;
             }
         });
-        const calculatedStats = {
+        return {
             processed: progressData.progress || modelIds.length,
             total: totalRuns || progressData.totalModels || modelIds.length || 0,
             valid: validCount, invalidStats: invalidStatsCount, invalidConstraints: 0,
             skipped: skippedCount, error: errorCount,
         };
-        // console.log('[summaryStats useMemo] Calculated stats:', calculatedStats); // Убрали лог
-        return calculatedStats;
     }, [progressData, totalRuns]);
 
-    // --- Подготовка и фильтрация данных для графика и таблицы ---
+    // --- Подготовка и фильтрация данных для графика и таблицы (без изменений) ---
     const filteredModelData = useMemo(() => {
-        // console.log('[filteredModelData useMemo] Filtering. progressData exists:', !!progressData); // Убрали лог
-        if (!progressData || !progressData.results) {
-             // console.warn('[filteredModelData useMemo] progressData or progressData.results missing. Returning empty object.'); // Убрали лог
-             return {};
-        }
-
+        if (!progressData || !progressData.results) return {};
         const results = progressData.results;
         const filtered = {};
         Object.entries(results).forEach(([id, result]) => {
@@ -89,7 +80,6 @@ function ModelDashboard({ progressData, totalRuns }) {
             if (filters.showOnlyValid && !result.data?.is_valid) return;
             filtered[id] = result;
         });
-        // console.log(`[filteredModelData useMemo] Filtered ${Object.keys(filtered).length} models.`); // Убрали лог
         return filtered;
     }, [progressData, filters]);
 
@@ -103,21 +93,28 @@ function ModelDashboard({ progressData, totalRuns }) {
 
     // Обработчик клика на точку графика или строку таблицы
     const handleModelSelect = useCallback((modelId) => {
+        console.log('[handleModelSelect] Clicked:', modelId);
         const result = progressData?.results?.[modelId];
         if (modelId && result && result.status === 'completed') {
             if (selectedModelDetails?.id === modelId) {
+                console.log('[handleModelSelect] Toggling details visibility.');
                 setIsDetailsVisible(prev => !prev);
                 if (isDetailsVisible) {
+                    console.log('[handleModelSelect] Hiding details, clearing decomp data.');
                     setDecompositionData(null);
                     setDecompError(null);
                 }
             } else {
+                console.log('[handleModelSelect] Selecting new model:', modelId);
                 setSelectedModelDetails({ id: modelId, ...result.data });
                 setIsDetailsVisible(true);
                 setDecompositionData(null);
+                // <<< ИЗМЕНЕНИЕ: Убрали setIsDecompLoading(true) отсюда >>>
                 setDecompError(null);
+                // console.log('[handleModelSelect] Set isDecompLoading to true.'); // Лог больше не актуален
             }
         } else {
+            console.log('[handleModelSelect] Deselecting model or invalid click.');
             setSelectedModelDetails(null);
             setIsDetailsVisible(false);
             setDecompositionData(null);
@@ -127,9 +124,11 @@ function ModelDashboard({ progressData, totalRuns }) {
 
     // Обработчик кнопки для сворачивания/разворачивания деталей
     const toggleDetailsVisibility = () => {
+        console.log('[toggleDetailsVisibility] Toggling.');
         if (selectedModelDetails) {
             setIsDetailsVisible(prev => !prev);
             if (isDetailsVisible) {
+                console.log('[toggleDetailsVisibility] Hiding details, clearing decomp data.');
                 setDecompositionData(null);
                 setDecompError(null);
             }
@@ -138,12 +137,23 @@ function ModelDashboard({ progressData, totalRuns }) {
 
     // --- useEffect для загрузки данных декомпозиции ---
     useEffect(() => {
+        console.log('[Decomp useEffect] Checking conditions:', {
+            selectedModelId: selectedModelDetails?.id, isDetailsVisible,
+            hasDecompData: !!decompositionData, isDecompLoading, hasDecompError: !!decompError
+        });
+
         if (selectedModelDetails && isDetailsVisible && !decompositionData && !isDecompLoading && !decompError) {
+            console.log('[Decomp useEffect] Conditions met. Starting fetch.');
+
             const fetchDecomposition = async () => {
+                // <<< ИЗМЕНЕНИЕ: Устанавливаем флаг загрузки здесь >>>
                 setIsDecompLoading(true);
                 setDecompError(null);
                 const jobId = progressData?.jobId;
                 const modelId = selectedModelDetails.id;
+
+                console.log('[fetchDecomposition] Job ID:', jobId);
+                console.log('[fetchDecomposition] Model ID:', modelId);
 
                 if (!jobId) {
                     console.error('[fetchDecomposition] Job ID not found!');
@@ -175,29 +185,42 @@ function ModelDashboard({ progressData, totalRuns }) {
                 }
 
                 const modelSpecification = { regressors_with_lags, include_constant };
+
+                console.log("[fetchDecomposition] Model Specification:", modelSpecification);
                 const apiUrl = `http://localhost:5001/api/get_model_decomposition/${jobId}/${modelId}`;
+                console.log("[fetchDecomposition] Sending POST request to:", apiUrl);
 
                 try {
                     const response = await axios.post(apiUrl, { modelSpecification });
+                    console.log("[fetchDecomposition] Received response status:", response.status);
+                    console.log("[fetchDecomposition] Received response data:", response.data);
+
                     if (response.data && !response.data.error) {
                         setDecompositionData(response.data);
+                        console.log("[fetchDecomposition] Decomposition data successfully set.");
                     } else { throw new Error(response.data?.error || "Invalid decomposition data received from server."); }
                 } catch (err) {
                     console.error("[fetchDecomposition] Error during axios request:", err);
                     setDecompError(err.response?.data?.error || err.message || "Failed to fetch decomposition.");
                 } finally {
+                    console.log("[fetchDecomposition] Setting isDecompLoading to false.");
                     setIsDecompLoading(false);
                 }
             };
+
             fetchDecomposition();
+        } else {
+             console.log('[Decomp useEffect] Conditions NOT met or already loading/loaded/errored.');
         }
 
         if (!isDetailsVisible || !selectedModelDetails) {
              if(isDecompLoading) {
+                 console.log('[Decomp useEffect Cleanup] Hiding details or model changed, setting isDecompLoading to false.');
                  setIsDecompLoading(false);
              }
         }
-    }, [selectedModelDetails, isDetailsVisible, decompositionData, isDecompLoading, decompError, progressData]);
+
+    }, [selectedModelDetails, isDetailsVisible, decompositionData, isDecompLoading, decompError, progressData?.jobId]);
 
 
     // --- Рендер ---
@@ -205,14 +228,12 @@ function ModelDashboard({ progressData, totalRuns }) {
         return <div className="dashboard-loading">Loading dashboard data...</div>;
     }
 
-
     return (
         <div className="model-dashboard">
 
             {/* 1. Сводная Статистика */}
             <div className="dashboard-section summary-stats-section">
-                {/* <<< ДОБАВЛЕНА ПРОВЕРКА summaryStats >>> */}
-                {summaryStats ? <JobSummaryStats stats={summaryStats} status={progressData.status} /> : <div>Calculating stats...</div>}
+                <JobSummaryStats stats={summaryStats} status={progressData.status} />
             </div>
 
             {/* 2. Фильтры */}
@@ -242,13 +263,10 @@ function ModelDashboard({ progressData, totalRuns }) {
                     </div>
                 </div>
                  <div className="plot-content-wrapper">
-                     {/* <<< ДОБАВЛЕНА ПРОВЕРКА filteredModelData >>> */}
-                     {filteredModelData ? (
-                         <ModelScatterPlot
-                            modelData={filteredModelData} xAxisMetric={scatterXAxis} yAxisMetric={scatterYAxis}
-                            onPointClick={handleModelSelect} selectedModelId={selectedModelDetails?.id}
-                         />
-                     ) : <div>Filtering models...</div>}
+                     <ModelScatterPlot
+                        modelData={filteredModelData} xAxisMetric={scatterXAxis} yAxisMetric={scatterYAxis}
+                        onPointClick={handleModelSelect} selectedModelId={selectedModelDetails?.id}
+                    />
                  </div>
             </div>
 
@@ -256,12 +274,9 @@ function ModelDashboard({ progressData, totalRuns }) {
             <div className="dashboard-section results-table-section">
                  <div className="section-header"><h4>Model Results Table</h4></div>
                  <div className="table-content-wrapper">
-                     {/* <<< ДОБАВЛЕНА ПРОВЕРКА filteredModelData >>> */}
-                     {filteredModelData ? (
-                         <ModelResultsTable
-                            modelData={filteredModelData} onRowClick={handleModelSelect} selectedModelId={selectedModelDetails?.id}
-                         />
-                     ) : <div>Filtering models...</div>}
+                     <ModelResultsTable
+                        modelData={filteredModelData} onRowClick={handleModelSelect} selectedModelId={selectedModelDetails?.id}
+                    />
                  </div>
             </div>
 
@@ -290,6 +305,7 @@ function ModelDashboard({ progressData, totalRuns }) {
                         }
                         if (decompositionData) {
                             return (
+                                // <<< ОБЕРНУТЬ В ErrorBoundary >>>
                                 <ErrorBoundary>
                                     <DecompositionChart
                                         decompositionData={decompositionData}

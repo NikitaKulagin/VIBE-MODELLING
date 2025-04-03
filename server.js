@@ -191,7 +191,7 @@ const activeJobs = {};
         status: 'starting' | 'running' | 'paused' | 'stopped' | 'finished' | 'error',
         config: {}, // Original config from the request
         dependentVariable: {}, // Original Y data (for reference)
-        regressors: {}, // Original X data (for reference)
+        regressors: {}, // Original X data (for reference) - { name: [[ts, val],...], ... }
         results: { model_id: { status: 'completed'|'error'|'skipped', data?: {}, error?: string, reason?: string } }, // Accumulated results from Python
         progress: 0, // Number of models processed by Python script
         totalModels: null, // Estimated total models (can be null initially)
@@ -775,6 +775,79 @@ app.get('/api/search_progress/:jobId', (req, res) => {
     });
 });
 // ---
+
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// +++ NEW ENDPOINT: Get Model Decomposition Data +++
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+app.post('/api/get_model_decomposition/:jobId/:modelId', async (req, res) => {
+    const { jobId, modelId } = req.params;
+    const { modelSpecification } = req.body; // Expecting { regressors_with_lags: {...}, include_constant: true/false }
+
+    console.log(`\nPOST /api/get_model_decomposition/${jobId}/${modelId} received.`);
+
+    // --- Validation ---
+    const job = activeJobs[jobId];
+    if (!job) {
+        console.error(`[Decomposition] Job ${jobId} not found.`);
+        return res.status(404).json({ error: `Job ${jobId} not found.` });
+    }
+    if (!modelId) {
+        console.error(`[Decomposition] Model ID is missing.`);
+        return res.status(400).json({ error: 'Model ID is required.' });
+    }
+    // Check if the requested model actually exists in the results (optional but good)
+    // if (!job.results || !job.results[modelId] || job.results[modelId].status !== 'completed') {
+    //     console.error(`[Decomposition] Model ${modelId} not found or not completed in job ${jobId}.`);
+    //     return res.status(404).json({ error: `Model ${modelId} not found or not completed.` });
+    // }
+    if (!modelSpecification || typeof modelSpecification !== 'object' || !modelSpecification.regressors_with_lags) {
+        console.error(`[Decomposition] Invalid or missing 'modelSpecification' in request body.`);
+        return res.status(400).json({ error: 'Invalid or missing modelSpecification in request body.' });
+    }
+    if (typeof modelSpecification.include_constant === 'undefined') {
+         console.warn(`[Decomposition] 'include_constant' missing in modelSpecification, defaulting to true.`);
+         modelSpecification.include_constant = true; // Default if not provided
+    }
+
+    // --- Prepare Payload for Python Script ---
+    const payload = {
+        model_id: modelId, // Pass model ID for logging in Python
+        dependentVariable: job.dependentVariable, // Get Y data from the stored job
+        regressors: job.regressors, // Get ALL original X data from the stored job
+        modelSpecification: modelSpecification // Get the specific model details from the request body
+    };
+
+    // --- Run Python Script ---
+    const scriptPath = path.join(__dirname, 'python_scripts', 'step4_calculate_decomposition.py');
+    console.log(`[Decomposition] Calling Python script for model ${modelId} in job ${jobId}...`);
+
+    try {
+        const result = await runPythonScript(scriptPath, [], payload);
+
+        // Check for errors reported by the script itself
+        if (result && result.error) {
+            throw new Error(result.error);
+        }
+
+        // Check if the result has the expected structure
+        if (result && result.actual_y && result.predicted_y && result.contributions) {
+            console.log(`[Decomposition] Script successful for model ${modelId}. Returning data.`);
+            res.json(result); // Send the decomposition data back
+        } else {
+            // Handle unexpected successful output structure
+            console.warn(`[Decomposition] Script for model ${modelId} returned unexpected structure:`, result);
+            throw new Error("Decomposition script returned invalid data structure.");
+        }
+    } catch (error) {
+        // Handle errors from runPythonScript or thrown above
+        console.error(`[Decomposition] Error processing model ${modelId} in job ${jobId}:`, error.message);
+        res.status(500).json({ error: error.message || `Failed to calculate decomposition for model ${modelId}.` });
+    }
+});
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// +++ END OF NEW ENDPOINT +++
+// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 // -----------------------------------------------------------------------------
 // START SERVER

@@ -33,6 +33,8 @@ VIBE_MODELING/
 │       │   ├── BlockThreeModeling.js
 │       │   ├── BlockTwoDataEnrichment.css
 │       │   ├── BlockTwoDataEnrichment.js
+│       │   ├── DecompositionChart.js
+│       │   ├── ErrorBoundary.js
 │       │   ├── JobSummaryStats.css
 │       │   ├── JobSummaryStats.js
 │       │   ├── ModelDashboard.css
@@ -55,7 +57,8 @@ VIBE_MODELING/
 │   ├── step2_diff_abs.py
 │   ├── step2_diff_pct.py
 │   ├── step2_normalize.py
-│   └── step3_run_regression_master.py
+│   ├── step3_run_regression_master.py
+│   └── step4_calculate_decomposition.py
 ├── server.js
 ├── server_config.json
 ├── updateArchitecture.py
@@ -125,7 +128,7 @@ VIBE_MODELING/
 - **Файл**: index.html (язык: html)
   - Html: **index.html**
     - *Описание:* HTML файл
-    - *Импорты:* %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/logo192.png
+    - *Импорты:* %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json
 
 ### Папка: client/src
 Содержимые файлы:
@@ -140,9 +143,9 @@ VIBE_MODELING/
     - *Импорты:* ./App
 - **Файл**: App.js (язык: js)
   - Function: **App**
-    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
+    - *Описание:* Импортируем все компоненты блоков --- Стили и иконка для кнопки Reset ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/BlockTwoDataEnrichment, ./components/ModelDashboard, ./components/BlockThreeModeling, ./components/BlockOneDataImport, ./components/TimeSeriesChart
+    - *Импорты:* ./components/BlockThreeModeling, ./components/BlockOneDataImport, ./components/BlockTwoDataEnrichment, ./components/ModelDashboard, ./components/TimeSeriesChart
 
 ### Папка: client/src/components
 Содержимые файлы:
@@ -152,6 +155,8 @@ VIBE_MODELING/
 - BlockThreeModeling.js
 - BlockTwoDataEnrichment.css
 - BlockTwoDataEnrichment.js
+- DecompositionChart.js
+- ErrorBoundary.js
 - JobSummaryStats.css
 - JobSummaryStats.js
 - ModelDashboard.css
@@ -165,9 +170,9 @@ VIBE_MODELING/
 **Детали по файлам:**
 - **Файл**: ModelDashboard.js (язык: js)
   - Function: **ModelDashboard**
-    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- Добавьте другие метрики по мере необходимости --- Иконки для кнопки сворачивания/разворачивания ---
+    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- --- Иконки для кнопки сворачивания/разворачивания ---
   - File_imports: **ModelDashboard.js**
-    - *Импорты:* ./JobSummaryStats, ./ModelScatterPlot, ./ModelResultsTable
+    - *Импорты:* ./ModelScatterPlot, ./JobSummaryStats, ./ModelResultsTable, ./DecompositionChart, ./ErrorBoundary
 - **Файл**: JobSummaryStats.js (язык: js)
   - Function: **JobSummaryStats**
 - **Файл**: ModelScatterPlot.js (язык: js)
@@ -190,6 +195,11 @@ VIBE_MODELING/
 - **Файл**: BlockOneDataImport.js (язык: js)
   - Function: **BlockOneDataImport**
     - *Описание:* --- Иконки --- --- Конец иконок ---
+- **Файл**: DecompositionChart.js (язык: js)
+  - Function: **ModelDashboard**
+    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- --- Иконки для кнопки сворачивания/разворачивания ---
+  - File_imports: **DecompositionChart.js**
+    - *Импорты:* ./ModelScatterPlot, ./JobSummaryStats, ./ModelResultsTable, ./DecompositionChart, ./ErrorBoundary
 
 ### Папка: python_scripts
 Содержимые файлы:
@@ -200,6 +210,7 @@ VIBE_MODELING/
 - step2_diff_pct.py
 - step2_normalize.py
 - step3_run_regression_master.py
+- step4_calculate_decomposition.py
 
 **Детали по файлам:**
 - **Файл**: step2_normalize.py (язык: python)
@@ -234,6 +245,17 @@ VIBE_MODELING/
   - Def: **create_lagged_features**
   - Def: **run_single_ols**
   - Def: **run_regression_master**
+- **Файл**: step4_calculate_decomposition.py (язык: python)
+  - File_comment: **step4_calculate_decomposition.py**
+    - *Описание:* python_scripts/step4_calculate_decomposition.py
+  - Def: **log_error**
+  - Def: **log_info**
+  - Def: **log_warn**
+    - *Описание:* --- Функция для очистки данных от невалидных JSON значений (NaN/inf) ---
+  - Def: **sanitize_for_json**
+  - Def: **series_to_list**
+    - *Описание:* Убедимся, что индекс - это DatetimeIndex
+  - Def: **calculate_decomposition**
 - **Файл**: step2_diff_pct.py (язык: python)
   - Def: **log_error**
   - Def: **log_info**

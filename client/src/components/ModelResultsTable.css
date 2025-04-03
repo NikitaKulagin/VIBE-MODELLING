@@ -3,11 +3,11 @@
 /* --- Контейнер для всего блока таблицы (включая контролы) --- */
 .model-results-table-container {
     width: 100%;
-    height: 100%; /* Занимает всю высоту родителя (.table-content-wrapper) */
+    /* <<< ИЗМЕНЕНИЕ: Убрали height: 100% >>> */
     display: flex;
-    flex-direction: column; /* Контролы сверху/снизу, таблица посередине */
-    overflow: hidden; /* Предотвращаем выход контента */
-    /* Убраны border, background, overflow - они теперь у .table-wrapper */
+    flex-direction: column;
+    /* <<< ИЗМЕНЕНИЕ: Убрали overflow: hidden >>> */
+    /* Высота определяется содержимым */
 }
 
 /* --- Контролы над/под таблицей --- */
@@ -15,11 +15,11 @@
 .table-controls-bottom {
     flex-shrink: 0; /* Не сжимаются */
     padding: 8px 10px;
-    background-color: #f8f9fa; /* Фон для контролов */
-    border-bottom: 1px solid #dee2e6; /* Линия под верхними контролами */
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
 }
 .table-controls-bottom {
-    border-top: 1px solid #dee2e6; /* Линия над нижними контролами */
+    border-top: 1px solid #dee2e6;
     border-bottom: none;
 }
 /* Стили для элементов внутри контролов (пример) */
@@ -36,12 +36,16 @@
 
 /* --- Обертка для самой таблицы с прокруткой --- */
 .table-wrapper {
-    flex-grow: 1; /* Занимает все оставшееся место */
-    overflow: auto; /* !!! Добавляет и вертикальный, и горизонтальный скролл */
-    border: 1px solid #dee2e6; /* Рамка вокруг области скролла */
+    /* <<< ИЗМЕНЕНИЕ: Убрали flex-grow: 1 и min-height: 0 >>> */
+    overflow: auto; /* Добавляет скролл, если контент превышает max-height */
+    border: 1px solid #dee2e6;
     border-radius: 4px;
     background-color: #fff;
-    min-height: 0; /* Позволяет сжиматься */
+    /* <<< ИЗМЕНЕНИЕ: Добавили max-height >>> */
+    /* Ограничиваем максимальную высоту, чтобы таблица не растягивалась бесконечно. */
+    /* 60vh - примерно 30 строк + заголовок. Можно подстроить. */
+    max-height: 60vh;
+    /* Высота будет по содержимому, но не больше max-height */
 }
 
 /* --- Сама таблица --- */
@@ -51,22 +55,19 @@
     font-size: 0.85em;
     color: #212529;
     table-layout: auto;
-    /* border-spacing: 0; */ /* Убедимся, что нет отступов */
 }
 
 /* --- Заголовок таблицы (thead) --- */
 .model-results-table thead {
-    /* background-color не нужен здесь, т.к. он будет на th */
-    /* border-bottom убран, т.к. sticky может его перекрыть */
+    /* Стили остаются */
 }
 
 /* --- Ячейки заголовка (th) --- */
 .model-results-table th {
-    position: sticky; /* !!! Делаем заголовок залипающим */
+    position: sticky; /* Делаем заголовок залипающим */
     top: 0; /* Прилипает к верху контейнера .table-wrapper */
-    background-color: #f8f9fa; /* !!! Обязательный фон, чтобы контент не просвечивал */
-    z-index: 1; /* !!! Чтобы заголовок был поверх tbody */
-
+    background-color: #f8f9fa; /* Обязательный фон */
+    z-index: 1; /* Чтобы заголовок был поверх tbody */
     padding: 8px 10px;
     text-align: left;
     font-weight: 600;
@@ -74,10 +75,8 @@
     vertical-align: middle;
     cursor: pointer;
     transition: background-color 0.2s ease;
-    border-bottom: 2px solid #dee2e6; /* Граница под заголовком */
-    /* border-right: 1px solid #dee2e6; */ /* Опционально: вертикальные линии */
+    border-bottom: 2px solid #dee2e6;
 }
-/* .model-results-table th:last-child { border-right: none; } */
 .model-results-table th:hover {
     background-color: #e9ecef;
 }
@@ -89,13 +88,11 @@
     opacity: 0.4;
     font-size: 0.9em;
 }
-.model-results-table th.sorted-asc .sort-icon::after, /* Классы могут быть другими в TanStack v8 */
-.model-results-table th[aria-sort='ascending'] .sort-icon::after { /* Пример для aria-sort */
+.model-results-table th[aria-sort='ascending'] .sort-icon::after {
     content: ' ▲';
     opacity: 1;
 }
-.model-results-table th.sorted-desc .sort-icon::after, /* Классы могут быть другими в TanStack v8 */
-.model-results-table th[aria-sort='descending'] .sort-icon::after { /* Пример для aria-sort */
+.model-results-table th[aria-sort='descending'] .sort-icon::after {
     content: ' ▼';
     opacity: 1;
 }
@@ -116,7 +113,7 @@
     background-color: #f1f3f5;
 }
 .model-results-table tbody tr.selected-row {
-    background-color: #cfe2ff !important; /* !important для перекрытия hover */
+    background-color: #cfe2ff !important;
     font-weight: 500;
 }
 
@@ -125,9 +122,7 @@
 .model-results-table td {
     padding: 6px 10px;
     vertical-align: middle;
-    /* border-right: 1px solid #e9ecef; */ /* Опционально: вертикальные линии */
 }
-/* .model-results-table td:last-child { border-right: none; } */
 
 /* --- Выравнивание числовых ячеек --- */
 .model-results-table td.numeric {
@@ -136,23 +131,19 @@
 }
 
 /* --- Стиль для ID модели --- */
-.model-results-table td.model-id,
-.model-results-table td.col-model-id { /* Добавлен класс из JS */
+.model-results-table td.col-model-id {
     font-family: monospace;
     font-size: 0.9em;
     color: #6c757d;
 }
 
 /* --- Стиль для булевых значений --- */
-.model-results-table td.boolean-true,
-.model-results-table td.col-valid, /* Добавлен класс из JS */
-.model-results-table td.col-test { /* Добавлен класс из JS */
+.model-results-table td.col-valid,
+.model-results-table td.col-test {
     text-align: center;
 }
-/* Используем селектор атрибута для иконки, если cell рендерит строку */
 .model-results-table td[data-value="true"] { color: #198754; }
 .model-results-table td[data-value="false"] { color: #dc3545; }
-/* Или если рендерятся прямо иконки */
 .model-results-table td span.boolean-true { color: #198754; }
 .model-results-table td span.boolean-false { color: #dc3545; }
 
@@ -165,8 +156,7 @@
 }
 
 /* --- Сообщение, если таблица пуста --- */
-.no-results-message,
-.table-placeholder { /* Добавлен класс из JS */
+.table-placeholder {
     padding: 20px;
     text-align: center;
     color: #6c757d;

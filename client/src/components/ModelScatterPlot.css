@@ -1,202 +1,24 @@
-/* ModelDashboard.css */
+/* ModelScatterPlot.css */
 
-/* --- Общий контейнер --- */
-.model-dashboard {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    gap: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-/* --- Общий стиль для секций --- */
-.dashboard-section {
+/* Стили для сообщения-заглушки, когда нет данных для графика */
+.plot-placeholder {
+    display: flex; /* Используем flex для центрирования */
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали */
     width: 100%;
-    box-sizing: border-box;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    padding: 10px;
-    transition: all 0.3s ease-in-out;
-}
-
-/* --- Секции с фиксированной высотой --- */
-.summary-stats-section,
-.filter-section {
-    flex-shrink: 0;
-    padding: 0;
-    border: none;
-    background-color: transparent;
-}
-.filter-section {
-    padding: 10px;
-    border: 1px solid #dee2e6;
-    background-color: #fff;
-}
-
-/* --- Секция Scatter Plot --- */
-.scatter-plot-section {
-    flex: 0 0 55%;
-    min-height: 250px;
-    overflow: hidden; /* Оставляем обрезку секции */
-    padding: 10px;
-    display: flex; /* Добавляем flex, чтобы обертка растянулась */
-    flex-direction: column; /* Заголовок сверху, обертка снизу */
-}
-/* Обертка для контента графика */
-.plot-content-wrapper {
-    flex-grow: 1; /* Занимает все доступное место в секции */
-    min-height: 0;
-    overflow: hidden; /* <<< ИЗМЕНЕНИЕ: Возвращаем overflow: hidden сюда */
-    position: relative;
-    /* <<< ИЗМЕНЕНИЕ: Добавляем height 100%, чтобы явно задать высоту для Plotly >>> */
-    height: 100%;
-}
-
-/* --- Секция Деталей --- */
-.selected-model-details-section {
-    flex-shrink: 0;
-    overflow: hidden;
-    padding: 0;
-    position: relative;
-    border-color: #ced4da;
-    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; /* Добавили transition */
-}
-.selected-model-details-section.hidden {
-    display: none;
-}
-/* Добавляем max-height для анимации */
-.selected-model-details-section.expanded {
-    max-height: 25vh; /* Ограничиваем высоту в развернутом виде */
-}
-.selected-model-details-section.collapsed {
-    max-height: 38px; /* Примерная высота заголовка + рамки */
-    border-bottom: none; /* Убираем нижнюю рамку в свернутом виде */
-}
-
-/* Стили для заголовка деталей */
-.selected-model-details-section .details-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 10px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    background-color: #f8f9fa;
-}
-.selected-model-details-section.collapsed .details-header {
-    border-bottom: none; /* Убираем линию под хедером в свернутом виде */
-}
-.selected-model-details-section .details-header h5 {
-    margin: 0;
-    font-size: 1em;
-}
-/* Кнопка сворачивания/разворачивания */
-.toggle-details-btn {
-    background: none;
-    border: none;
-    padding: 0 5px;
-    cursor: pointer;
-    color: #6c757d;
-    display: flex;
-    align-items: center;
-}
-.toggle-details-btn:hover {
-    color: #343a40;
-}
-/* Контейнер для содержимого деталей */
-.details-content {
-    padding: 10px 15px;
-    overflow-y: auto; /* Скролл для длинного JSON */
-    /* max-height убран отсюда, управляется через .expanded/.collapsed */
-}
-.selected-model-details-section.collapsed .details-content {
-    /* Стили для скрытия контента в collapsed состоянии */
-    padding-top: 0;
-    padding-bottom: 0;
-    overflow: hidden;
-}
-
-.selected-model-details-section pre {
-    font-size: 0.85em;
-    white-space: pre-wrap;
-    word-break: break-all;
-    margin: 0;
-}
-.details-placeholder {
-    padding: 15px;
+    height: 100%; /* Занимает все место контейнера графика */
+    color: #6c757d; /* Серый цвет текста */
+    font-style: italic;
     text-align: center;
-    color: #6c757d;
-    font-style: italic;
-}
-.close-details-btn { display: none; }
-
-
-/* --- Секция Таблицы --- */
-.results-table-section {
-    flex-grow: 1;
-    flex-basis: 0;
-    min-height: 0;
-    overflow: hidden;
-    padding: 0;
-}
-.results-table-section .section-header {
-    padding: 8px 10px;
-    border-bottom: 1px solid #dee2e6;
-}
-.table-content-wrapper {
-    flex-grow: 1;
-    min-height: 0;
-    overflow: hidden; /* Скроллбар будет у .table-wrapper внутри ModelResultsTable.css */
-    position: relative;
-    padding: 10px;
+    padding: 20px; /* Небольшие отступы */
+    box-sizing: border-box;
+    background-color: #f8f9fa; /* Легкий фон, чтобы было видно область */
+    border-radius: 4px; /* Скругление углов */
 }
 
-
-/* --- Заголовок внутри секции (общий) --- */
-.dashboard-section .section-header h4 {
-    margin: 0;
-    font-size: 1.1em;
+/* Можно добавить стили для самого графика, если нужно, но обычно Plotly управляет этим сам */
+/* Например:
+.model-scatter-plot .plotly .main-svg {
+    border: 1px dashed blue;
 }
-.dashboard-section .section-header .plot-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-.dashboard-section .section-header label {
-    font-size: 0.9em;
-    margin-left: 5px;
-}
-.dashboard-section .section-header select {
-    font-size: 0.9em;
-    padding: 2px 5px;
-}
-
-/* --- Стили для фильтров --- */
-.filter-section h4 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 1.1em;
-}
-.filter-controls {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    font-size: 0.9em;
-}
-
-/* Стиль для заглушки загрузки */
-.dashboard-loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    font-style: italic;
-    color: #6c757d;
-}
+*/

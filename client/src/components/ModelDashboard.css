@@ -3,14 +3,11 @@
 .model-dashboard {
     display: flex;
     flex-direction: column;
-    /* Убрали height: 100% */
     width: 100%;
-    padding: 10px;
     box-sizing: border-box;
-    gap: 10px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-    /* Высота определяется содержимым */
+    gap: 15px;
+    height: 100%; /* Дашборд пытается занять всю высоту родителя */
+    min-height: 0;
 }
 
 /* Общий стиль для секций */
@@ -22,8 +19,8 @@
     background-color: #fff;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* Все секции по умолчанию не сжимаются */
     transition: all 0.3s ease-in-out;
+    /* Убрали flex-shrink: 0 по умолчанию */
 }
 
 /* Секции статистики и фильтров */
@@ -32,29 +29,30 @@
     padding: 0;
     border: none;
     background-color: transparent;
+    flex-shrink: 0; /* Эти секции не должны сжиматься */
 }
 .filter-section {
     padding: 10px;
     border: 1px solid #dee2e6;
     background-color: #fff;
+    flex-shrink: 0; /* И эта тоже */
 }
 
 /* --- Секция Scatter Plot --- */
 .scatter-plot-section {
-    /* Убрали aspect-ratio и flex-basis */
-    /* Задаем высоту, например, 50% высоты окна просмотра */
-    height: 50vh;
-    min-height: 300px; /* Минимальная высота */
-    max-height: 600px; /* Максимальная высота */
+    height: 55vh;
+    min-height: 350px;
+    max-height: 70vh;
     overflow: hidden;
     padding: 10px;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0; /* График НЕ должен сжиматься по вертикали */
 }
 .plot-content-wrapper {
-    flex-grow: 1; /* Заполняет секцию */
+    flex-grow: 1;
     min-height: 0;
-    overflow: hidden; /* График не скроллится */
+    overflow: hidden;
     position: relative;
 }
 
@@ -65,9 +63,14 @@
     position: relative;
     border-color: #ced4da;
     transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out;
+    flex-shrink: 0; /* Секция деталей тоже не сжимается */
 }
 /* Стили для expanded/collapsed остаются прежними */
-.selected-model-details-section.expanded { max-height: 25vh; border-width: 1px; border-style: solid; }
+.selected-model-details-section.expanded {
+    max-height: 50vh; /* <--- Изменено на 50% высоты экрана */
+    border-width: 1px;
+    border-style: solid;
+}
 .selected-model-details-section.collapsed { max-height: 38px; border-bottom: 1px solid #dee2e6; border-top: 1px solid #dee2e6; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6; }
 .selected-model-details-section .details-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; cursor: pointer; background-color: #f8f9fa; }
 .selected-model-details-section.collapsed .details-header { border-bottom: none; }
@@ -83,15 +86,13 @@
 
 /* --- Секция Таблицы --- */
 .results-table-section {
-    /* Убрали flex-grow, flex-basis */
-    min-height: 200px; /* Минимальная высота */
-    /* Высота будет определяться содержимым, но не меньше min-height */
-    overflow: hidden;
+    /* <<< ИЗМЕНЕНИЕ: Убрали min-height, flex-grow, flex-basis >>> */
+    overflow: visible; /* <<< ИЗМЕНЕНИЕ: Убрали hidden, т.к. высота по контенту */
     padding: 0;
     display: flex;
     flex-direction: column;
-    /* Добавим flex-shrink, чтобы таблица могла сжиматься, если все остальное очень большое */
-    flex-shrink: 1;
+    flex-shrink: 0; /* <<< ИЗМЕНЕНИЕ: Секция таблицы НЕ сжимается */
+    /* Высота будет определяться содержимым (ModelResultsTable) */
 }
 .results-table-section .section-header {
     padding: 8px 10px;
@@ -99,15 +100,12 @@
     flex-shrink: 0;
 }
 .table-content-wrapper {
-    /* Убрали flex-grow */
-    /* Высота определяется содержимым ModelResultsTable */
-    min-height: 0;
-    overflow: hidden; /* Скролл внутри ModelResultsTable */
+    /* <<< ИЗМЕНЕНИЕ: Убрали flex-grow и min-height >>> */
+    overflow: visible; /* <<< ИЗМЕНЕНИЕ: Убрали hidden */
     position: relative;
     padding: 10px;
-    /* Добавляем display: flex, чтобы ModelResultsTable мог занять 100% */
-    display: flex;
-    flex-grow: 1; /* Обертка растягивается внутри секции */
+    display: flex; /* Оставляем, чтобы ModelResultsTable занял 100% ширины */
+    /* Высота будет определяться содержимым (ModelResultsTable) */
 }
 
 
