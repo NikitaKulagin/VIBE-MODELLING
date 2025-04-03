@@ -1,0 +1,65 @@
+/* App.css */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; /* Предотвращаем скролл на уровне body */
+  }
+  
+  .App {
+    display: flex;
+    height: 100vh; /* Используем vh для надежности */
+    font-family: sans-serif;
+  }
+  
+  .left-pane {
+    width: 45%;
+    flex-shrink: 0; /* Не сжимается по ширине */
+    border-right: 1px solid #ccc;
+    padding: 15px;
+    box-sizing: border-box;
+    overflow-y: auto; /* Скролл для левой панели */
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .right-pane {
+    width: 55%;
+    flex-grow: 1; /* Занимает оставшуюся ширину */
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* !!! СКРОЛЛ ПРЯМО ЗДЕСЬ !!! */
+    min-height: 0; /* Для корректной работы flex */
+  }
+  
+  /* <<< УДАЛИЛИ СТИЛИ ДЛЯ .visualization-content-wrapper >>> */
+  
+  /* Стили для заголовков и разделителей */
+  h2 {
+      flex-shrink: 0; /* Заголовок не растягивается и не сжимается по вертикали */
+      margin-top: 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+  }
+  hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 15px 0;
+      width: 100%;
+      flex-shrink: 0; /* Разделитель не растягивается и не сжимается */
+  }
+  
+  /* Добавим стиль для обертки TimeSeriesChart, чтобы он растягивался */
+  /* (Хотя инлайн-стиль в App.js должен работать) */
+  /*
+  .timeseries-chart-wrapper {
+    flex-grow: 1;
+    min-height: 0;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  */

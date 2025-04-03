@@ -1,98 +1,202 @@
-/* ModelScatterPlot.css */
+/* ModelDashboard.css */
 
-/* --- Основной контейнер для всего блока Scatter Plot --- */
-.model-scatter-plot-container {
+/* --- Общий контейнер --- */
+.model-dashboard {
     display: flex;
-    flex-direction: column; /* Располагаем элементы вертикально */
-    height: 100%; /* Занимает всю доступную высоту родителя */
+    flex-direction: column;
+    height: 100%;
     padding: 10px;
+    box-sizing: border-box;
+    gap: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* --- Общий стиль для секций --- */
+.dashboard-section {
+    width: 100%;
+    box-sizing: border-box;
     border: 1px solid #dee2e6;
     border-radius: 4px;
     background-color: #fff;
-    box-sizing: border-box;
-    overflow: hidden; /* Предотвращаем выход контента */
-  }
-  
-  /* --- Контейнер для элементов управления осями --- */
-  .axis-controls {
     display: flex;
-    flex-wrap: wrap; /* Перенос на новую строку при необходимости */
-    gap: 15px; /* Отступ между контролами */
-    margin-bottom: 15px; /* Отступ снизу от графика */
-    padding-bottom: 10px; /* Отступ под контролами */
-    border-bottom: 1px solid #eee; /* Разделитель */
-    flex-shrink: 0; /* Не сжимается по вертикали */
-  }
-  
-  /* --- Группа для одного элемента управления (метка + селект) --- */
-  .axis-control-group {
-    display: flex;
-    align-items: center; /* Выравнивание по центру */
-    gap: 5px; /* Отступ между меткой и селектом */
-  }
-  
-  /* --- Метка для селекта оси --- */
-  .axis-label {
-    font-size: 0.9em;
-    font-weight: 600;
-    color: #495057;
-    white-space: nowrap; /* Не переносить текст метки */
-  }
-  
-  /* --- Селект для выбора метрики оси --- */
-  .axis-select {
-    padding: 4px 8px; /* Компактные отступы */
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 0.9em;
+    flex-direction: column;
+    padding: 10px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* --- Секции с фиксированной высотой --- */
+.summary-stats-section,
+.filter-section {
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+.filter-section {
+    padding: 10px;
+    border: 1px solid #dee2e6;
     background-color: #fff;
+}
+
+/* --- Секция Scatter Plot --- */
+.scatter-plot-section {
+    flex: 0 0 55%;
+    min-height: 250px;
+    overflow: hidden; /* Оставляем обрезку секции */
+    padding: 10px;
+    display: flex; /* Добавляем flex, чтобы обертка растянулась */
+    flex-direction: column; /* Заголовок сверху, обертка снизу */
+}
+/* Обертка для контента графика */
+.plot-content-wrapper {
+    flex-grow: 1; /* Занимает все доступное место в секции */
+    min-height: 0;
+    overflow: hidden; /* <<< ИЗМЕНЕНИЕ: Возвращаем overflow: hidden сюда */
+    position: relative;
+    /* <<< ИЗМЕНЕНИЕ: Добавляем height 100%, чтобы явно задать высоту для Plotly >>> */
+    height: 100%;
+}
+
+/* --- Секция Деталей --- */
+.selected-model-details-section {
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    border-color: #ced4da;
+    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; /* Добавили transition */
+}
+.selected-model-details-section.hidden {
+    display: none;
+}
+/* Добавляем max-height для анимации */
+.selected-model-details-section.expanded {
+    max-height: 25vh; /* Ограничиваем высоту в развернутом виде */
+}
+.selected-model-details-section.collapsed {
+    max-height: 38px; /* Примерная высота заголовка + рамки */
+    border-bottom: none; /* Убираем нижнюю рамку в свернутом виде */
+}
+
+/* Стили для заголовка деталей */
+.selected-model-details-section .details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
     cursor: pointer;
-    min-width: 120px; /* Минимальная ширина селекта */
-  }
-  .axis-select:focus {
-    border-color: #86b7fe;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-  }
-  
-  /* --- Контейнер для самого графика Scatter Plot --- */
-  .scatter-plot-area {
-    flex-grow: 1; /* Занимает все оставшееся вертикальное пространство */
-    position: relative; /* Для позиционирования дочерних элементов (например, холста графика) */
-    min-height: 150px; /* Минимальная высота */
-    overflow: hidden; /* Скрываем все, что выходит за границы */
-  }
-  
-  /* --- Стиль для холста (canvas) или SVG графика --- */
-  /* Предполагается, что библиотека для графиков создаст такой элемент */
-  .scatter-plot-area canvas,
-  .scatter-plot-area svg {
-    display: block; /* Убирает лишние отступы */
-    width: 100% !important;  /* Заставляем занимать всю ширину контейнера */
-    height: 100% !important; /* Заставляем занимать всю высоту контейнера */
-  }
-  
-  /* --- Стиль для всплывающих подсказок (tooltip) графика --- */
-  /* Стилизация зависит от используемой библиотеки графиков (Chart.js, Plotly, etc.) */
-  /* Примерный общий стиль */
-  .chartjs-tooltip, /* Пример для Chart.js */
-  .plotly-tooltip { /* Пример для Plotly */
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    pointer-events: none; /* Чтобы не мешал взаимодействию с графиком */
-    white-space: nowrap;
-  }
-  
-  /* --- Стиль для сообщения-заглушки, если данных для графика нет --- */
-  .scatter-plot-placeholder {
+    background-color: #f8f9fa;
+}
+.selected-model-details-section.collapsed .details-header {
+    border-bottom: none; /* Убираем линию под хедером в свернутом виде */
+}
+.selected-model-details-section .details-header h5 {
+    margin: 0;
+    font-size: 1em;
+}
+/* Кнопка сворачивания/разворачивания */
+.toggle-details-btn {
+    background: none;
+    border: none;
+    padding: 0 5px;
+    cursor: pointer;
+    color: #6c757d;
     display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
+}
+.toggle-details-btn:hover {
+    color: #343a40;
+}
+/* Контейнер для содержимого деталей */
+.details-content {
+    padding: 10px 15px;
+    overflow-y: auto; /* Скролл для длинного JSON */
+    /* max-height убран отсюда, управляется через .expanded/.collapsed */
+}
+.selected-model-details-section.collapsed .details-content {
+    /* Стили для скрытия контента в collapsed состоянии */
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+}
+
+.selected-model-details-section pre {
+    font-size: 0.85em;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+}
+.details-placeholder {
+    padding: 15px;
+    text-align: center;
     color: #6c757d;
     font-style: italic;
-    text-align: center;
-  }
+}
+.close-details-btn { display: none; }
+
+
+/* --- Секция Таблицы --- */
+.results-table-section {
+    flex-grow: 1;
+    flex-basis: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding: 0;
+}
+.results-table-section .section-header {
+    padding: 8px 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+.table-content-wrapper {
+    flex-grow: 1;
+    min-height: 0;
+    overflow: hidden; /* Скроллбар будет у .table-wrapper внутри ModelResultsTable.css */
+    position: relative;
+    padding: 10px;
+}
+
+
+/* --- Заголовок внутри секции (общий) --- */
+.dashboard-section .section-header h4 {
+    margin: 0;
+    font-size: 1.1em;
+}
+.dashboard-section .section-header .plot-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.dashboard-section .section-header label {
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+.dashboard-section .section-header select {
+    font-size: 0.9em;
+    padding: 2px 5px;
+}
+
+/* --- Стили для фильтров --- */
+.filter-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+.filter-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    font-size: 0.9em;
+}
+
+/* Стиль для заглушки загрузки */
+.dashboard-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-style: italic;
+    color: #6c757d;
+}

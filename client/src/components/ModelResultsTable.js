@@ -56,7 +56,7 @@ function ModelResultsTable({ modelData, onRowClick, selectedModelId }) {
     const [globalFilter, setGlobalFilter] = useState('');
     const [pagination, setPagination] = useState({
         pageIndex: 0,
-        pageSize: 15,
+        pageSize: 30, // <<< ИЗМЕНЕНИЕ ЗДЕСЬ: Установлено 30 по умолчанию
     });
 
     const data = useMemo(() => {
@@ -143,19 +143,16 @@ function ModelResultsTable({ modelData, onRowClick, selectedModelId }) {
             </div>
 
             <div className="table-wrapper">
-                {/* --- ИЗМЕНЕНИЯ ЗДЕСЬ: Убраны {...table.getTableProps()} и т.д. --- */}
                 <table className="model-results-table">
                     <thead>
                         {table.getHeaderGroups().map(headerGroup => (
-                            // Убран {...headerGroup.getHeaderGroupProps()}
                             <tr key={headerGroup.id}>
                                 {headerGroup.headers.map(header => (
-                                    // Убран {...header.getHeaderProps()}
                                     <th
                                         key={header.id}
-                                        colSpan={header.colSpan} // Используем colSpan из v8
+                                        colSpan={header.colSpan}
                                         className={`${header.column.columnDef.className || ''} ${header.column.getCanSort() ? 'sortable' : ''}`}
-                                        style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }} // Пример использования размера колонки
+                                        style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                                         onClick={header.column.getToggleSortingHandler()}
                                     >
                                         {header.isPlaceholder
@@ -178,19 +175,16 @@ function ModelResultsTable({ modelData, onRowClick, selectedModelId }) {
                             </tr>
                         ))}
                     </thead>
-                    {/* Убран {...table.getTableBodyProps()} */}
                     <tbody>
                         {table.getRowModel().rows.map(row => {
                             const isSelected = row.original.model_id === selectedModelId;
                             return (
-                                // Убран {...row.getRowProps()}
                                 <tr
                                     key={row.id}
                                     onClick={() => onRowClick(row.original.model_id)}
                                     className={isSelected ? 'selected-row' : ''}
                                 >
                                     {row.getVisibleCells().map(cell => (
-                                        // Убран {...cell.getCellProps()}
                                         <td key={cell.id} className={cell.column.columnDef.className || ''} style={{ width: cell.column.getSize() !== 150 ? cell.column.getSize() : undefined }}>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
@@ -233,7 +227,8 @@ function ModelResultsTable({ modelData, onRowClick, selectedModelId }) {
                     value={table.getState().pagination.pageSize}
                     onChange={e => table.setPageSize(Number(e.target.value))}
                 >
-                    {[10, 15, 25, 50, 100].map(size => (
+                    {/* <<< ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлено 30 в массив опций */}
+                    {[10, 15, 25, 30, 50, 100].map(size => (
                         <option key={size} value={size}>
                             Show {size}
                         </option>

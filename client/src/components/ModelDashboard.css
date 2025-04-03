@@ -1,99 +1,121 @@
 /* ModelDashboard.css */
 
-/* --- Общий контейнер для всего дашборда результатов --- */
 .model-dashboard {
     display: flex;
-    flex-direction: column; /* Элементы располагаются вертикально */
-    height: 100%; /* Занимает всю доступную высоту родителя (например, правой панели App.js) */
-    padding: 10px; /* Небольшой внутренний отступ */
-    box-sizing: border-box;
-    gap: 15px; /* Отступ между основными секциями дашборда */
-    background-color: #f8f9fa; /* Слегка серый фон для отличия */
-    border-radius: 5px;
-  }
-  
-  /* --- Контейнер для основной области (сетка выбора + детали/график) --- */
-  /* Используем flex для расположения бок о бок */
-  .dashboard-main-area {
-    display: flex;
-    flex-direction: row; /* Элементы (сетка и детали) располагаются горизонтально */
-    flex-grow: 1; /* Занимает все доступное вертикальное пространство */
-    gap: 15px; /* Отступ между левой и правой частями */
-    overflow: hidden; /* Предотвращаем выход контента */
-    min-height: 200px; /* Минимальная высота, чтобы не схлопывался */
-  }
-  
-  /* --- Левая часть: Контейнер для сетки/тепловой карты выбора моделей --- */
-  .model-selector-container {
-    flex: 1 1 40%; /* Занимает примерно 40% ширины, может сжиматься/растягиваться */
-    display: flex; /* Чтобы вложенный компонент мог растягиваться */
     flex-direction: column;
+    /* Убрали height: 100% */
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    gap: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    /* Высота определяется содержимым */
+}
+
+/* Общий стиль для секций */
+.dashboard-section {
+    width: 100%;
+    box-sizing: border-box;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    padding: 8px;
     background-color: #fff;
-    overflow: auto; /* Добавляем скролл, если сетка не помещается */
-  }
-  
-  /* --- Правая часть: Контейнер для вывода деталей и графика декомпозиции --- */
-  .model-output-container {
-    flex: 1 1 60%; /* Занимает примерно 60% ширины */
     display: flex;
-    flex-direction: column; /* Детали и график располагаются вертикально */
-    gap: 10px; /* Отступ между панелью деталей и графиком */
-    overflow: hidden; /* Предотвращаем выход контента */
-  }
-  
-  /* --- Стили для дочерних компонентов (можно вынести в их CSS) --- */
-  
-  /* Примерный стиль для панели деталей внутри правой части */
-  .model-details-panel { /* Предполагаемый класс для компонента деталей */
-    flex-shrink: 0; /* Не сжимается по вертикали */
+    flex-direction: column;
+    flex-shrink: 0; /* Все секции по умолчанию не сжимаются */
+    transition: all 0.3s ease-in-out;
+}
+
+/* Секции статистики и фильтров */
+.summary-stats-section,
+.filter-section {
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+.filter-section {
     padding: 10px;
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
+    border: 1px solid #dee2e6;
     background-color: #fff;
-    max-height: 40vh; /* Ограничение высоты */
-    overflow-y: auto; /* Скролл для деталей */
-  }
-  .model-details-panel h5 {
-      margin-top: 0;
-      margin-bottom: 10px;
-  }
-  
-  /* Примерный стиль для контейнера графика декомпозиции */
-  .decomposition-chart-container { /* Предполагаемый класс для компонента графика */
-    flex-grow: 1; /* Занимает оставшееся место в правой колонке */
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    background-color: #fff;
+}
+
+/* --- Секция Scatter Plot --- */
+.scatter-plot-section {
+    /* Убрали aspect-ratio и flex-basis */
+    /* Задаем высоту, например, 50% высоты окна просмотра */
+    height: 50vh;
+    min-height: 300px; /* Минимальная высота */
+    max-height: 600px; /* Максимальная высота */
+    overflow: hidden;
     padding: 10px;
-    min-height: 150px; /* Минимальная высота */
-    position: relative; /* Для позиционирования самого графика */
-    overflow: hidden; /* Скрываем то, что не помещается */
-  }
-  
-  /* --- Заголовок дашборда (если нужен) --- */
-  .dashboard-title {
-    margin-top: 0;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.plot-content-wrapper {
+    flex-grow: 1; /* Заполняет секцию */
+    min-height: 0;
+    overflow: hidden; /* График не скроллится */
+    position: relative;
+}
+
+/* --- Секция Деталей --- */
+.selected-model-details-section {
+    overflow: hidden;
+    padding: 0;
+    position: relative;
+    border-color: #ced4da;
+    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out;
+}
+/* Стили для expanded/collapsed остаются прежними */
+.selected-model-details-section.expanded { max-height: 25vh; border-width: 1px; border-style: solid; }
+.selected-model-details-section.collapsed { max-height: 38px; border-bottom: 1px solid #dee2e6; border-top: 1px solid #dee2e6; border-left: 1px solid #dee2e6; border-right: 1px solid #dee2e6; }
+.selected-model-details-section .details-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; cursor: pointer; background-color: #f8f9fa; }
+.selected-model-details-section.collapsed .details-header { border-bottom: none; }
+.selected-model-details-section .details-header h5 { margin: 0; font-size: 1em; }
+.toggle-details-btn { background: none; border: none; padding: 0 5px; cursor: pointer; color: #6c757d; display: flex; align-items: center; }
+.toggle-details-btn:hover { color: #343a40; }
+.details-content { padding: 10px 15px; overflow-y: auto; }
+.selected-model-details-section.collapsed .details-content { padding-top: 0; padding-bottom: 0; overflow: hidden; }
+.selected-model-details-section pre { font-size: 0.85em; white-space: pre-wrap; word-break: break-all; margin: 0; }
+.details-placeholder { padding: 15px; text-align: center; color: #6c757d; font-style: italic; }
+.close-details-btn { display: none; }
+
+
+/* --- Секция Таблицы --- */
+.results-table-section {
+    /* Убрали flex-grow, flex-basis */
+    min-height: 200px; /* Минимальная высота */
+    /* Высота будет определяться содержимым, но не меньше min-height */
+    overflow: hidden;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    /* Добавим flex-shrink, чтобы таблица могла сжиматься, если все остальное очень большое */
+    flex-shrink: 1;
+}
+.results-table-section .section-header {
+    padding: 8px 10px;
     border-bottom: 1px solid #dee2e6;
-    font-size: 1.2em;
-    color: #343a40;
-    flex-shrink: 0; /* Не сжимается */
-  }
-  
-  /* --- Сообщение-заглушка (если модель не выбрана) --- */
-  .output-placeholder {
+    flex-shrink: 0;
+}
+.table-content-wrapper {
+    /* Убрали flex-grow */
+    /* Высота определяется содержимым ModelResultsTable */
+    min-height: 0;
+    overflow: hidden; /* Скролл внутри ModelResultsTable */
+    position: relative;
+    padding: 10px;
+    /* Добавляем display: flex, чтобы ModelResultsTable мог занять 100% */
     display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: #6c757d;
-    font-style: italic;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    text-align: center;
-    padding: 20px;
-  }
+    flex-grow: 1; /* Обертка растягивается внутри секции */
+}
+
+
+/* --- Остальные стили --- */
+.dashboard-section .section-header h4 { margin: 0; font-size: 1.1em; }
+.dashboard-section .section-header .plot-controls { display: flex; gap: 10px; align-items: center; }
+.dashboard-section .section-header label { font-size: 0.9em; margin-left: 5px; }
+.dashboard-section .section-header select { font-size: 0.9em; padding: 2px 5px; }
+.filter-section h4 { margin-top: 0; margin-bottom: 10px; font-size: 1.1em; }
+.filter-controls { display: flex; gap: 15px; align-items: center; font-size: 0.9em; }
+.dashboard-loading { display: flex; justify-content: center; align-items: center; height: 100%; font-style: italic; color: #6c757d; }

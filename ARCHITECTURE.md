@@ -60,6 +60,7 @@ VIBE_MODELING/
 ├── server_config.json
 ├── updateArchitecture.py
 ├── uploads/
+├── ~$BE_MODELLING.docx
 ├── ~$Z1 Div and Corp Loans+levels.xlsx
 └── ~$shboard Subplan.docx
 ```
@@ -76,6 +77,7 @@ VIBE_MODELING/
 - server.js
 - server_config.json
 - updateArchitecture.py
+- ~$BE_MODELLING.docx
 - ~$Z1 Div and Corp Loans+levels.xlsx
 - ~$shboard Subplan.docx
 
@@ -123,7 +125,7 @@ VIBE_MODELING/
 - **Файл**: index.html (язык: html)
   - Html: **index.html**
     - *Описание:* HTML файл
-    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico
+    - *Импорты:* %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/logo192.png
 
 ### Папка: client/src
 Содержимые файлы:
@@ -138,9 +140,9 @@ VIBE_MODELING/
     - *Импорты:* ./App
 - **Файл**: App.js (язык: js)
   - Function: **App**
-    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее import ModelProgressVisualizer from './components/ModelProgressVisualizer'; // Больше не используется напрямую --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
+    - *Описание:* Импортируем все компоненты блоков import BlockFourResults from './components/BlockFourResults'; // Задел на будущее --- Стили и иконка для кнопки Reset --- --- Конец стилей ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/ModelDashboard, ./components/BlockThreeModeling, ./components/TimeSeriesChart, ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport
+    - *Импорты:* ./components/BlockTwoDataEnrichment, ./components/ModelDashboard, ./components/BlockThreeModeling, ./components/BlockOneDataImport, ./components/TimeSeriesChart
 
 ### Папка: client/src/components
 Содержимые файлы:
@@ -163,14 +165,14 @@ VIBE_MODELING/
 **Детали по файлам:**
 - **Файл**: ModelDashboard.js (язык: js)
   - Function: **ModelDashboard**
-    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- Ключ - как он приходит из Python (или как мы его формируем в ModelResultsTable), Значение - как отображать пользователю Добавьте другие метрики по мере необходимости
+    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- Добавьте другие метрики по мере необходимости --- Иконки для кнопки сворачивания/разворачивания ---
   - File_imports: **ModelDashboard.js**
     - *Импорты:* ./JobSummaryStats, ./ModelScatterPlot, ./ModelResultsTable
 - **Файл**: JobSummaryStats.js (язык: js)
   - Function: **JobSummaryStats**
 - **Файл**: ModelScatterPlot.js (язык: js)
   - Function: **ModelScatterPlot**
-    - *Описание:* Определяем цвета для разных статусов/валидности invalid_constraints: 'rgba(255, 193, 7, 0.7)', // Желтый (пока не используется) Функция для безопасного извлечения метрики (может быть вложенной) Простые случаи (прямые метрики или кол-во регрессоров) Считаем количество ключей в data.coefficients, исключая 'const' Вложенные метрики (внутри data.metrics) Возвращаем null, если значение не числовое (например, Infinity для MAPE)
+    - *Описание:* ... (STATUS_COLORS и getMetricValue остаются без изменений) ...
 - **Файл**: BlockTwoDataEnrichment.js (язык: js)
   - Function: **BlockTwoDataEnrichment**
     - *Описание:* --- Иконки --- --- Конец иконок --- Стили модального окна --- Принимаем новый пропс onSendDataToModeling ---
@@ -226,7 +228,9 @@ VIBE_MODELING/
   - Def: **log_error**
   - Def: **log_info**
   - Def: **log_warn**
-    - *Описание:* --- Функция для создания лагированных признаков (из старого скрипта) ---
+    - *Описание:* --- НОВАЯ Функция для очистки данных от невалидных JSON значений ---
+  - Def: **sanitize_for_json**
+    - *Описание:* Рекурсивно обходит словарь или список и заменяет inf, -inf, nan на None.
   - Def: **create_lagged_features**
   - Def: **run_single_ols**
   - Def: **run_regression_master**

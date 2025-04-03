@@ -11,6 +11,7 @@ import io
 import warnings
 import itertools
 import time # Для периодической отправки
+import math # Для проверки на inf/nan
 
 # Игнорируем предупреждения от statsmodels, если нужно
 warnings.filterwarnings("ignore")
@@ -21,6 +22,29 @@ log_buffer = io.StringIO()
 def log_error(message): print(f"ERROR_MASTER: {message}", file=log_buffer)
 def log_info(message): print(f"INFO_MASTER: {message}", file=log_buffer)
 def log_warn(message): print(f"WARN_MASTER: {message}", file=log_buffer)
+
+# --- НОВАЯ Функция для очистки данных от невалидных JSON значений ---
+def sanitize_for_json(data):
+    """
+    Рекурсивно обходит словарь или список и заменяет inf, -inf, nan на None.
+    """
+    if isinstance(data, dict):
+        return {k: sanitize_for_json(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [sanitize_for_json(item) for item in data]
+    elif isinstance(data, float):
+        if math.isinf(data) or math.isnan(data):
+            return None # Заменяем на null в JSON
+        return data
+    # Обработка numpy типов (на всякий случай)
+    elif isinstance(data, (np.float_, np.float16, np.float32, np.float64)):
+        if np.isinf(data) or np.isnan(data):
+            return None
+        return float(data) # Преобразуем в стандартный float
+    elif isinstance(data, (np.int_, np.intc, np.intp, np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64)):
+         return int(data) # Преобразуем в стандартный int
+    return data
+# --- Конец новой функции ---
 
 # --- Функция для создания лагированных признаков (из старого скрипта) ---
 def create_lagged_features(df, features_with_lags):
@@ -85,7 +109,14 @@ def run_single_ols(y_series, all_x_df, spec, config, model_id):
         predictions = model_results.predict(X)
         residuals = Y - predictions
         if metrics_config.get('mae'): results_data["metrics"]["mae"] = np.mean(np.abs(residuals))
-        if metrics_config.get('mape'): results_data["metrics"]["mape"] = np.mean(np.abs(residuals / Y)) * 100 if np.all(Y != 0) else np.inf
+        # ИЗМЕНЕНИЕ ЗДЕСЬ: Используем np.inf, но потом очистим
+        if metrics_config.get('mape'):
+            # Проверяем наличие нулей в Y перед делением
+            if np.any(Y == 0):
+                 results_data["metrics"]["mape"] = np.inf # Или можно сразу None
+            else:
+                 results_data["metrics"]["mape"] = np.mean(np.abs(residuals / Y)) * 100
+
         if metrics_config.get('rmse'): results_data["metrics"]["rmse"] = np.sqrt(np.mean(residuals**2))
         if metrics_config.get('rSquared'):
              results_data["metrics"]["r_squared"] = model_results.rsquared
@@ -100,6 +131,7 @@ def run_single_ols(y_series, all_x_df, spec, config, model_id):
         if tests_config.get('pValue'):
             threshold = config.get('pValueThreshold', 0.05)
             pvals_no_const = model_results.pvalues.drop('const', errors='ignore')
+            # Проверяем на NaN перед сравнением
             if not pvals_no_const.empty and pvals_no_const.max() > threshold:
                 results_data["test_results"]["p_value_ok"] = False
                 results_data["is_valid"] = False
@@ -108,11 +140,18 @@ def run_single_ols(y_series, all_x_df, spec, config, model_id):
         results_data["test_results"]["vif_ok"] = True
         if tests_config.get('vif') and X_for_tests.shape[1] >= 2:
             try:
-                vif_values = [variance_inflation_factor(X_for_tests.values, i) for i in range(X_for_tests.shape[1])]
-                results_data["test_results"]["vif_values"] = dict(zip(X_for_tests.columns, vif_values))
-                if max(vif_values) > 10:
-                    results_data["test_results"]["vif_ok"] = False
-                    results_data["is_valid"] = False
+                # Проверяем на наличие NaN/inf в данных перед VIF
+                if np.any(np.isinf(X_for_tests.values)) or np.any(np.isnan(X_for_tests.values)):
+                     log_warn(f"NaN/Inf found in X data for VIF calculation in {model_id}, skipping VIF.")
+                     results_data["test_results"]["vif_ok"] = False # Считаем тест не пройденным
+                     results_data["is_valid"] = False
+                else:
+                    vif_values = [variance_inflation_factor(X_for_tests.values, i) for i in range(X_for_tests.shape[1])]
+                    results_data["test_results"]["vif_values"] = dict(zip(X_for_tests.columns, vif_values))
+                    # Проверяем на inf в результатах VIF
+                    if np.any(np.isinf(vif_values)) or max(vif_values) > 10:
+                        results_data["test_results"]["vif_ok"] = False
+                        results_data["is_valid"] = False
             except Exception as vif_e:
                  log_warn(f"VIF calculation failed for {model_id}: {vif_e}")
                  results_data["test_results"]["vif_ok"] = False
@@ -122,22 +161,39 @@ def run_single_ols(y_series, all_x_df, spec, config, model_id):
         results_data["test_results"]["heteroskedasticity_ok"] = True
         if tests_config.get('heteroskedasticity') and not X.empty:
              try:
-                 bp_test = het_breuschpagan(model_results.resid, model_results.model.exog)
-                 results_data["test_results"]["bp_pvalue"] = bp_test[1]
-                 if bp_test[1] < 0.05:
-                     results_data["test_results"]["heteroskedasticity_ok"] = False
+                 # Проверяем на NaN/Inf в остатках и экзогенных переменных
+                 if np.any(np.isnan(model_results.resid)) or np.any(np.isinf(model_results.resid)) or \
+                    np.any(np.isnan(model_results.model.exog)) or np.any(np.isinf(model_results.model.exog)):
+                     log_warn(f"NaN/Inf found in data for Breusch-Pagan test in {model_id}, skipping test.")
+                     results_data["test_results"]["heteroskedasticity_ok"] = False # Считаем тест не пройденным
                      results_data["is_valid"] = False
+                 else:
+                     bp_test = het_breuschpagan(model_results.resid, model_results.model.exog)
+                     results_data["test_results"]["bp_pvalue"] = bp_test[1]
+                     # Проверяем p-value на NaN перед сравнением
+                     if not math.isnan(bp_test[1]) and bp_test[1] < 0.05:
+                         results_data["test_results"]["heteroskedasticity_ok"] = False
+                         results_data["is_valid"] = False
+                     elif math.isnan(bp_test[1]):
+                          log_warn(f"Breusch-Pagan test returned NaN p-value for {model_id}.")
+                          results_data["test_results"]["heteroskedasticity_ok"] = False # Считаем тест не пройденным
+                          results_data["is_valid"] = False
+
              except Exception as bp_e:
                  log_warn(f"Breusch-Pagan test failed for {model_id}: {bp_e}")
                  results_data["test_results"]["heteroskedasticity_ok"] = False
                  results_data["is_valid"] = False
 
-        return {"status": "completed", "data": results_data}
+        # !!! ВАЖНО: Очищаем results_data перед возвратом !!!
+        sanitized_results_data = sanitize_for_json(results_data)
+
+        return {"status": "completed", "data": sanitized_results_data}
 
     except Exception as e:
         log_error(f"Error in run_single_ols for {model_id}: {str(e)}")
         # traceback.print_exc(file=log_buffer) # Можно раскомментировать для детального трейсбека
-        return {"status": "error", "error": f"Failed OLS: {str(e)}"}
+        # Возвращаем очищенный результат ошибки
+        return sanitize_for_json({"status": "error", "error": f"Failed OLS: {str(e)}"})
 
 # --- Основная функция ---
 def run_regression_master(input_json_str):
@@ -225,6 +281,7 @@ def run_regression_master(input_json_str):
                         model_id = current_spec["model_id"]
                         # Запускаем OLS
                         result = run_single_ols(y_series, all_x_df, current_spec, config, model_id)
+                        # !!! Результат уже очищен внутри run_single_ols !!!
                         batch_results[model_id] = result # Сохраняем результат в батч
                         total_models_calculated += 1
                         models_since_last_update += 1
@@ -232,13 +289,16 @@ def run_regression_master(input_json_str):
                         # Проверяем, не пора ли отправить обновление прогресса
                         current_time = time.time()
                         if models_since_last_update >= UPDATE_BATCH_SIZE or (current_time - last_update_time) >= UPDATE_INTERVAL_SECONDS:
+                             # !!! Очищаем батч перед отправкой (хотя он уже должен быть чистым) !!!
+                             sanitized_batch = sanitize_for_json(batch_results)
                              progress_update = {
                                  "type": "progress",
-                                 "processed_batch": batch_results,
+                                 "processed_batch": sanitized_batch, # Отправляем очищенный батч
                                  "total_calculated": total_models_calculated
                              }
                              # Печатаем JSON в stdout + НОВАЯ СТРОКА
-                             print(f"PROGRESS_UPDATE:{json.dumps(progress_update)}", flush=True)
+                             # Используем allow_nan=False для дополнительной проверки, хотя sanitize_for_json должен все убрать
+                             print(f"PROGRESS_UPDATE:{json.dumps(progress_update, allow_nan=False)}", flush=True)
                              log_info(f"Sent progress update. Batch size: {len(batch_results)}. Total calculated: {total_models_calculated}")
                              # Сбрасываем батч и счетчики
                              batch_results = {}
@@ -247,12 +307,14 @@ def run_regression_master(input_json_str):
 
         # Отправляем оставшиеся результаты, если они есть
         if batch_results:
+            # !!! Очищаем финальный батч перед отправкой !!!
+            sanitized_batch = sanitize_for_json(batch_results)
             progress_update = {
                 "type": "progress",
-                "processed_batch": batch_results,
+                "processed_batch": sanitized_batch, # Отправляем очищенный батч
                 "total_calculated": total_models_calculated
             }
-            print(f"PROGRESS_UPDATE:{json.dumps(progress_update)}", flush=True)
+            print(f"PROGRESS_UPDATE:{json.dumps(progress_update, allow_nan=False)}", flush=True)
             log_info(f"Sent final batch update. Batch size: {len(batch_results)}. Total calculated: {total_models_calculated}")
 
         # Финальное сообщение
@@ -262,7 +324,9 @@ def run_regression_master(input_json_str):
             "total_models_calculated": total_models_calculated,
             "message": "Regression search finished successfully."
         }
-        print(f"FINAL_RESULT:{json.dumps(final_result)}", flush=True)
+        # !!! Очищаем финальный результат перед отправкой !!!
+        sanitized_final_result = sanitize_for_json(final_result)
+        print(f"FINAL_RESULT:{json.dumps(sanitized_final_result, allow_nan=False)}", flush=True)
         log_info("Regression Master Finished.")
 
     except Exception as e:
@@ -274,8 +338,10 @@ def run_regression_master(input_json_str):
             "total_models_calculated": total_models_calculated,
             "error": f"Master script failed: {str(e)}"
         }
+        # !!! Очищаем результат ошибки перед отправкой !!!
+        sanitized_error_result = sanitize_for_json(error_result)
         # Печатаем ошибку в stdout, чтобы Node.js ее получил как финальный результат
-        print(f"FINAL_RESULT:{json.dumps(error_result)}", flush=True)
+        print(f"FINAL_RESULT:{json.dumps(sanitized_error_result, allow_nan=False)}", flush=True)
 
     finally:
         # Выводим все логи в stderr в самом конце
