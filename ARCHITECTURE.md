@@ -128,7 +128,7 @@ VIBE_MODELING/
 - **Файл**: index.html (язык: html)
   - Html: **index.html**
     - *Описание:* HTML файл
-    - *Импорты:* %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json
+    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico
 
 ### Папка: client/src
 Содержимые файлы:
@@ -145,7 +145,7 @@ VIBE_MODELING/
   - Function: **App**
     - *Описание:* Импортируем все компоненты блоков --- Стили и иконка для кнопки Reset ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/BlockThreeModeling, ./components/BlockOneDataImport, ./components/BlockTwoDataEnrichment, ./components/ModelDashboard, ./components/TimeSeriesChart
+    - *Импорты:* ./components/BlockThreeModeling, ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport, ./components/TimeSeriesChart, ./components/ModelDashboard
 
 ### Папка: client/src/components
 Содержимые файлы:
@@ -172,7 +172,7 @@ VIBE_MODELING/
   - Function: **ModelDashboard**
     - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- --- Иконки для кнопки сворачивания/разворачивания ---
   - File_imports: **ModelDashboard.js**
-    - *Импорты:* ./ModelScatterPlot, ./JobSummaryStats, ./ModelResultsTable, ./DecompositionChart, ./ErrorBoundary
+    - *Импорты:* ./ErrorBoundary, ./JobSummaryStats, ./ModelResultsTable, ./ModelScatterPlot, ./DecompositionChart
 - **Файл**: JobSummaryStats.js (язык: js)
   - Function: **JobSummaryStats**
 - **Файл**: ModelScatterPlot.js (язык: js)
@@ -196,10 +196,8 @@ VIBE_MODELING/
   - Function: **BlockOneDataImport**
     - *Описание:* --- Иконки --- --- Конец иконок ---
 - **Файл**: DecompositionChart.js (язык: js)
-  - Function: **ModelDashboard**
-    - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- --- Иконки для кнопки сворачивания/разворачивания ---
-  - File_imports: **DecompositionChart.js**
-    - *Импорты:* ./ModelScatterPlot, ./JobSummaryStats, ./ModelResultsTable, ./DecompositionChart, ./ErrorBoundary
+  - Function: **DecompositionChart**
+    - *Описание:* --- Регистрация компонентов ChartJS (без изменений) --- --- Функция для генерации цветов --- Добавим больше цветов, если нужно --- Основной компонент ---
 
 ### Папка: python_scripts
 Содержимые файлы:

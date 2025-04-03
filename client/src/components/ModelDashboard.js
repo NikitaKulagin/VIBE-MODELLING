@@ -38,16 +38,11 @@ function ModelDashboard({ progressData, totalRuns }) {
     const [isDecompLoading, setIsDecompLoading] = useState(false);
     const [decompError, setDecompError] = useState(null);
 
-    // console.log('[ModelDashboard Render] Received progressData:', !!progressData); // Убрали лог
-
     // --- Расчет сводной статистики ---
     const summaryStats = useMemo(() => {
-        // console.log('[summaryStats useMemo] Calculating. progressData exists:', !!progressData); // Убрали лог
         if (!progressData || !progressData.results) {
-            // console.warn('[summaryStats useMemo] progressData or progressData.results missing. Returning default stats.'); // Убрали лог
             return { processed: 0, total: totalRuns || 0, valid: 0, invalidStats: 0, invalidConstraints: 0, skipped: 0, error: 0 };
         }
-
         const results = progressData.results;
         const modelIds = Object.keys(results);
         let validCount = 0, invalidStatsCount = 0, skippedCount = 0, errorCount = 0;
@@ -64,24 +59,19 @@ function ModelDashboard({ progressData, totalRuns }) {
                 default: break;
             }
         });
-        const calculatedStats = {
+        return {
             processed: progressData.progress || modelIds.length,
             total: totalRuns || progressData.totalModels || modelIds.length || 0,
             valid: validCount, invalidStats: invalidStatsCount, invalidConstraints: 0,
             skipped: skippedCount, error: errorCount,
         };
-        // console.log('[summaryStats useMemo] Calculated stats:', calculatedStats); // Убрали лог
-        return calculatedStats;
     }, [progressData, totalRuns]);
 
     // --- Подготовка и фильтрация данных для графика и таблицы ---
     const filteredModelData = useMemo(() => {
-        // console.log('[filteredModelData useMemo] Filtering. progressData exists:', !!progressData); // Убрали лог
         if (!progressData || !progressData.results) {
-             // console.warn('[filteredModelData useMemo] progressData or progressData.results missing. Returning empty object.'); // Убрали лог
              return {};
         }
-
         const results = progressData.results;
         const filtered = {};
         Object.entries(results).forEach(([id, result]) => {
@@ -89,7 +79,6 @@ function ModelDashboard({ progressData, totalRuns }) {
             if (filters.showOnlyValid && !result.data?.is_valid) return;
             filtered[id] = result;
         });
-        // console.log(`[filteredModelData useMemo] Filtered ${Object.keys(filtered).length} models.`); // Убрали лог
         return filtered;
     }, [progressData, filters]);
 
@@ -103,33 +92,43 @@ function ModelDashboard({ progressData, totalRuns }) {
 
     // Обработчик клика на точку графика или строку таблицы
     const handleModelSelect = useCallback((modelId) => {
+        console.log(`[handleModelSelect] Clicked model: ${modelId}`); // <<< LOG
         const result = progressData?.results?.[modelId];
         if (modelId && result && result.status === 'completed') {
             if (selectedModelDetails?.id === modelId) {
+                console.log(`[handleModelSelect] Toggling visibility for ${modelId}`); // <<< LOG
                 setIsDetailsVisible(prev => !prev);
-                if (isDetailsVisible) {
+                // Очищаем данные декомпозиции при скрытии
+                if (isDetailsVisible) { // Если сейчас visible, значит станет hidden
                     setDecompositionData(null);
                     setDecompError(null);
                 }
             } else {
+                console.log(`[handleModelSelect] Selecting new model: ${modelId}`); // <<< LOG
                 setSelectedModelDetails({ id: modelId, ...result.data });
                 setIsDetailsVisible(true);
+                // Сбрасываем предыдущие данные/ошибки декомпозиции
                 setDecompositionData(null);
                 setDecompError(null);
+                setIsDecompLoading(false); // <<< Убедимся, что сброшен флаг загрузки от предыдущей модели
             }
         } else {
+            console.log(`[handleModelSelect] Deselecting model or invalid click.`); // <<< LOG
             setSelectedModelDetails(null);
             setIsDetailsVisible(false);
             setDecompositionData(null);
             setDecompError(null);
+            setIsDecompLoading(false); // <<< Убедимся, что сброшен флаг загрузки
         }
-    }, [progressData, selectedModelDetails, isDetailsVisible]);
+    }, [progressData, selectedModelDetails, isDetailsVisible]); // Добавили isDetailsVisible в зависимости
 
     // Обработчик кнопки для сворачивания/разворачивания деталей
     const toggleDetailsVisibility = () => {
         if (selectedModelDetails) {
+            console.log(`[toggleDetailsVisibility] Toggling for ${selectedModelDetails.id}`); // <<< LOG
             setIsDetailsVisible(prev => !prev);
-            if (isDetailsVisible) {
+            // Очищаем данные декомпозиции при скрытии
+            if (isDetailsVisible) { // Если сейчас visible, значит станет hidden
                 setDecompositionData(null);
                 setDecompError(null);
             }
@@ -138,20 +137,38 @@ function ModelDashboard({ progressData, totalRuns }) {
 
     // --- useEffect для загрузки данных декомпозиции ---
     useEffect(() => {
-        if (selectedModelDetails && isDetailsVisible && !decompositionData && !isDecompLoading && !decompError) {
+        // Условие для запуска загрузки
+        const shouldFetch = selectedModelDetails && isDetailsVisible && !decompositionData && !isDecompLoading && !decompError;
+
+        console.log(`[Decomp useEffect] Check: shouldFetch=${shouldFetch}`, { // <<< LOG
+            selectedModelId: selectedModelDetails?.id,
+            isDetailsVisible,
+            hasDecompData: !!decompositionData,
+            isDecompLoading,
+            hasDecompError: !!decompError
+        });
+
+        if (shouldFetch) {
             const fetchDecomposition = async () => {
+                // Устанавливаем флаг загрузки и сбрасываем ошибку
+                console.log("[fetchDecomposition] Setting loading=true, error=null"); // <<< LOG
                 setIsDecompLoading(true);
                 setDecompError(null);
+
                 const jobId = progressData?.jobId;
                 const modelId = selectedModelDetails.id;
 
+                // Проверка наличия Job ID
                 if (!jobId) {
-                    console.error('[fetchDecomposition] Job ID not found!');
+                    console.error('[fetchDecomposition] Job ID not found in progressData!'); // <<< LOG
                     setDecompError("Job ID not found in progress data.");
-                    setIsDecompLoading(false);
+                    setIsDecompLoading(false); // <<< Важно сбросить флаг при ошибке
                     return;
                 }
 
+                console.log(`[fetchDecomposition] Starting fetch for Job: ${jobId}, Model: ${modelId}`); // <<< LOG
+
+                // Подготовка спецификации модели
                 const regressors_with_lags = {};
                 let include_constant = false;
                 try {
@@ -169,35 +186,53 @@ function ModelDashboard({ progressData, totalRuns }) {
                         });
                     } else { console.warn('[fetchDecomposition] selectedModelDetails.coefficients is missing!'); }
                 } catch (specError) {
-                    console.error('[fetchDecomposition] Error creating modelSpecification:', specError);
+                    console.error('[fetchDecomposition] Error creating modelSpecification:', specError); // <<< LOG
                     setDecompError("Error preparing model specification for request.");
-                    setIsDecompLoading(false); return;
+                    setIsDecompLoading(false); // <<< Важно сбросить флаг при ошибке
+                    return;
                 }
 
                 const modelSpecification = { regressors_with_lags, include_constant };
                 const apiUrl = `http://localhost:5001/api/get_model_decomposition/${jobId}/${modelId}`;
+                console.log("[fetchDecomposition] Sending POST to:", apiUrl, "with spec:", modelSpecification); // <<< LOG
 
+                // Выполнение запроса
                 try {
                     const response = await axios.post(apiUrl, { modelSpecification });
+                    console.log("[fetchDecomposition] Received response status:", response.status); // <<< LOG
+                    // console.log("[fetchDecomposition] Received response data:", response.data); // <<< LOG (можно раскомментировать для детального просмотра)
+
+                    // Проверка ответа
                     if (response.data && !response.data.error) {
+                        console.log("[fetchDecomposition] Success! Setting decomposition data."); // <<< LOG
                         setDecompositionData(response.data);
-                    } else { throw new Error(response.data?.error || "Invalid decomposition data received from server."); }
+                    } else {
+                        // Если бэкенд вернул ошибку в JSON
+                        const errorMsg = response.data?.error || "Invalid decomposition data received from server.";
+                        console.error("[fetchDecomposition] Server returned error:", errorMsg); // <<< LOG
+                        throw new Error(errorMsg);
+                    }
                 } catch (err) {
-                    console.error("[fetchDecomposition] Error during axios request:", err);
-                    setDecompError(err.response?.data?.error || err.message || "Failed to fetch decomposition.");
+                    // Обработка ошибок сети или ошибок, брошенных выше
+                    const errorMsg = err.response?.data?.error || err.message || "Failed to fetch decomposition.";
+                    console.error("[fetchDecomposition] Error during axios request:", errorMsg, err); // <<< LOG
+                    setDecompError(errorMsg);
                 } finally {
+                    // Этот блок выполнится всегда после try/catch
+                    console.log("[fetchDecomposition] Setting loading=false in finally block."); // <<< LOG
                     setIsDecompLoading(false);
                 }
             };
-            fetchDecomposition();
+
+            fetchDecomposition(); // Запускаем асинхронную функцию
         }
 
-        if (!isDetailsVisible || !selectedModelDetails) {
-             if(isDecompLoading) {
-                 setIsDecompLoading(false);
-             }
-        }
-    }, [selectedModelDetails, isDetailsVisible, decompositionData, isDecompLoading, decompError, progressData]);
+        // Логика очистки или отмены (если нужна)
+        // В данном случае, если пользователь скрывает детали или выбирает другую модель,
+        // handleModelSelect уже сбрасывает decompositionData, decompError, isDecompLoading.
+        // Поэтому явная отмена запроса здесь может быть излишней, но можно добавить AbortController при необходимости.
+
+    }, [selectedModelDetails, isDetailsVisible, decompositionData, isDecompLoading, decompError, progressData]); // Зависимости useEffect
 
 
     // --- Рендер ---
@@ -211,7 +246,6 @@ function ModelDashboard({ progressData, totalRuns }) {
 
             {/* 1. Сводная Статистика */}
             <div className="dashboard-section summary-stats-section">
-                {/* <<< ДОБАВЛЕНА ПРОВЕРКА summaryStats >>> */}
                 {summaryStats ? <JobSummaryStats stats={summaryStats} status={progressData.status} /> : <div>Calculating stats...</div>}
             </div>
 
@@ -242,7 +276,6 @@ function ModelDashboard({ progressData, totalRuns }) {
                     </div>
                 </div>
                  <div className="plot-content-wrapper">
-                     {/* <<< ДОБАВЛЕНА ПРОВЕРКА filteredModelData >>> */}
                      {filteredModelData ? (
                          <ModelScatterPlot
                             modelData={filteredModelData} xAxisMetric={scatterXAxis} yAxisMetric={scatterYAxis}
@@ -256,7 +289,6 @@ function ModelDashboard({ progressData, totalRuns }) {
             <div className="dashboard-section results-table-section">
                  <div className="section-header"><h4>Model Results Table</h4></div>
                  <div className="table-content-wrapper">
-                     {/* <<< ДОБАВЛЕНА ПРОВЕРКА filteredModelData >>> */}
                      {filteredModelData ? (
                          <ModelResultsTable
                             modelData={filteredModelData} onRowClick={handleModelSelect} selectedModelId={selectedModelDetails?.id}
@@ -279,16 +311,24 @@ function ModelDashboard({ progressData, totalRuns }) {
             </div>
 
             {/* 6. График Декомпозиции */}
+            {/* Показываем секцию, только если выбрана модель и детали видимы */}
             {selectedModelDetails && isDetailsVisible && (
                 <div className="dashboard-section decomposition-chart-section">
+                    {/* Используем IIFE для условного рендеринга внутри */}
                     {(() => {
+                        // Сначала проверяем состояние загрузки
                         if (isDecompLoading) {
+                            console.log("[Render Decomp] Showing Loading..."); // <<< LOG
                             return <div style={{padding: '20px', textAlign: 'center', fontStyle: 'italic'}}>Loading decomposition...</div>;
                         }
+                        // Затем проверяем наличие ошибки
                         if (decompError) {
+                            console.log("[Render Decomp] Showing Error:", decompError); // <<< LOG
                             return <div style={{padding: '15px', color: 'red', border: '1px solid red', borderRadius: '4px', backgroundColor: '#fdd'}}>Error fetching decomposition: {decompError}</div>;
                         }
+                        // Если не грузится и нет ошибки, проверяем наличие данных
                         if (decompositionData) {
+                            console.log("[Render Decomp] Showing DecompositionChart with data:", decompositionData); // <<< LOG
                             return (
                                 <ErrorBoundary>
                                     <DecompositionChart
@@ -298,6 +338,8 @@ function ModelDashboard({ progressData, totalRuns }) {
                                 </ErrorBoundary>
                             );
                         }
+                        // Если нет ни загрузки, ни ошибки, ни данных - ничего не рендерим (или можно плейсхолдер)
+                        console.log("[Render Decomp] No data, no error, not loading. Rendering null."); // <<< LOG
                         return null;
                     })()}
                 </div>
