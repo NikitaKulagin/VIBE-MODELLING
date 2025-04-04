@@ -128,7 +128,7 @@ VIBE_MODELING/
 - **Файл**: index.html (язык: html)
   - Html: **index.html**
     - *Описание:* HTML файл
-    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/manifest.json, %PUBLIC_URL%/favicon.ico
+    - *Импорты:* %PUBLIC_URL%/logo192.png, %PUBLIC_URL%/favicon.ico, %PUBLIC_URL%/manifest.json
 
 ### Папка: client/src
 Содержимые файлы:
@@ -145,7 +145,7 @@ VIBE_MODELING/
   - Function: **App**
     - *Описание:* Импортируем все компоненты блоков --- Стили и иконка для кнопки Reset ---
   - File_imports: **App.js**
-    - *Импорты:* ./components/BlockThreeModeling, ./components/BlockTwoDataEnrichment, ./components/BlockOneDataImport, ./components/TimeSeriesChart, ./components/ModelDashboard
+    - *Импорты:* ./components/BlockThreeModeling, ./components/ModelDashboard, ./components/BlockOneDataImport, ./components/TimeSeriesChart, ./components/BlockTwoDataEnrichment
 
 ### Папка: client/src/components
 Содержимые файлы:
@@ -172,7 +172,7 @@ VIBE_MODELING/
   - Function: **ModelDashboard**
     - *Описание:* Импортируем дочерние компоненты --- Определяем доступные метрики для осей графика --- --- Иконки для кнопки сворачивания/разворачивания ---
   - File_imports: **ModelDashboard.js**
-    - *Импорты:* ./ErrorBoundary, ./JobSummaryStats, ./ModelResultsTable, ./ModelScatterPlot, ./DecompositionChart
+    - *Импорты:* ./ModelScatterPlot, ./JobSummaryStats, ./ErrorBoundary, ./ModelResultsTable, ./DecompositionChart
 - **Файл**: JobSummaryStats.js (язык: js)
   - Function: **JobSummaryStats**
 - **Файл**: ModelScatterPlot.js (язык: js)
@@ -223,14 +223,14 @@ VIBE_MODELING/
   - Def: **aggregate_series_data**
 - **Файл**: step1_load_data.py (язык: python)
   - Def: **safe_get_metadata**
-    - *Описание:* ... (same as V9) ...
+    - *Описание:* ... (same as previous version) ...
   - Def: **log_debug**
   - Def: **infer_frequency_robust_v10**
-    - *Описание:* V10 Debug: Attempts pd.infer_freq first, then uses heuristics based on day differences.
-  - Def: **detect_data_blocks_v8**
-    - *Описание:* ... (detect_data_blocks_v8 function remains exactly the same as V8) ...
+    - *Описание:* ... (same as previous version, с подробным логированием) ...
+  - Def: **detect_data_blocks_robust**
+    - *Описание:* Detects data blocks robustly (v14): 1. Reads data as string. 2. Tries parsing full column with specific date_format (defaulting to ISO format). 3. Finds the first valid date index from this parsing. 4. Checks date coverage AND type ratio on the slice *below* the first date. 5. Checks if the *next* column is numeric (also on the slice).
   - Def: **process_excel_universal_v10**
-    - *Описание:* V10 uses detect_data_blocks_v8 and NEW infer_frequency_robust_v10
+    - *Описание:* V10 uses detect_data_blocks_robust v14 and infer_frequency_robust_v10""" ### ИЗМЕНЕНО ###
 - **Файл**: step3_run_regression_master.py (язык: python)
   - File_comment: **step3_run_regression_master.py**
     - *Описание:* python_scripts/step3_run_regression_master.py
